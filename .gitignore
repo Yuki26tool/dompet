@@ -7,3 +7,8 @@ node_modules/
 .venv/
 __pycache__/
 *.pyc
+
+# helper lokal
+push.sh
+_*.txt
+ui-sync.patch.js
