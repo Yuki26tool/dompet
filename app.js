@@ -142,10 +142,7 @@ function renderHome(){
   const closing = opening + tin - tout;
 
   const balEl = document.getElementById('hBal');
-  const balTxt = rp(Math.abs(closing));            // "Rp 7.660.000"
-  balEl.innerHTML = (closing < 0 ? '−' : '')
-    + '<span class="cur">' + balTxt.slice(0, 2) + '</span>'
-    + balTxt.slice(2);                              // angka saja pakai Pricedown
+  balEl.textContent = (closing < 0 ? '−' : '') + rp(Math.abs(closing));
   balEl.classList.toggle('neg', closing < 0);
   document.getElementById('hBalLbl').textContent = `Saldo akhir ${monthLabel(cursor)}`;
 
