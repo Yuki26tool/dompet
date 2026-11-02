@@ -18,7 +18,8 @@ manifest.json       Metadata PWA (installable)
 icon.svg            Ikon sumber
 server/serve_all.py Server gabungan: sajikan file app + API sync (1 file, stdlib)
 server/sync_server.py Versi lama, API sync saja (tanpa file statis)
-online.sh           Skrip nyalakan server + Cloudflare Tunnel
+online.sh           Skrip nyalakan server + Cloudflare Tunnel (sementara)
+cloudflare/         Worker + D1 untuk sync permanen (gratis, nggak tidur)
 docs/               Catatan cara pembuatan & keputusan desain
 ```
 
