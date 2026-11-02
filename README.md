@@ -104,7 +104,3 @@ MIT — pakai, ubah, jual, terserah lo.
 | [`docs/jebakan.md`](docs/jebakan.md) | 10 bug yang buang waktu — `let` vs `window`, tombstone, cache, compositor |
 | [`docs/sync.md`](docs/sync.md) | Protokol sync, last-write-wins, tombstone, kontrak API |
 | [`docs/hosting.md`](docs/hosting.md) | Nyalakan Pages, jalankan server + tunnel, batasannya |
-
-## Lisensi
-
-MIT — lihat [LICENSE](LICENSE).
