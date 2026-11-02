@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2a2350"/>
+      <stop offset="0.55" stop-color="#171b28"/>
+      <stop offset="1" stop-color="#0d1018"/>
+    </linearGradient>
+    <linearGradient id="v" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9a8cff"/>
+      <stop offset="1" stop-color="#5b47e0"/>
+    </linearGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2ee89a"/>
+      <stop offset="1" stop-color="#12a86c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#7c6cff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#7c6cff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="140" cy="120" r="230" fill="url(#glow)"/>
+
+  <!-- wallet body -->
+  <g>
+    <rect x="112" y="164" width="288" height="196" rx="46" fill="url(#v)"/>
+    <rect x="112" y="164" width="288" height="196" rx="46" fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="3"/>
+    <!-- card slot / flap -->
+    <path d="M112 232h288" stroke="#0d1018" stroke-opacity="0.28" stroke-width="4"/>
+    <rect x="300" y="256" width="128" height="66" rx="33" fill="#0d1018" fill-opacity="0.42"/>
+    <circle cx="340" cy="289" r="15" fill="url(#g)"/>
+    <!-- upward arrow (income) -->
+    <path d="M186 306 L186 236 M158 264 L186 236 L214 264" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- coin accent -->
+  <circle cx="352" cy="152" r="46" fill="url(#g)"/>
+  <path d="M352 128v48M338 142h24a10 10 0 010 20h-22a10 10 0 000 20h24" fill="none" stroke="#0b3a27" stroke-width="8" stroke-linecap="round"/>
+</svg>

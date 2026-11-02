@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Dompet — Catatan Keuangan</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css?v=23">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo">D</div>
+      <div>
+        <h1>Dompet</h1>
+        <small id="greet">Catatan keuangan lo</small>
+      </div>
+    </div>
+    <button class="icon-btn" id="btnSync" title="Sinkronisasi">
+      <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4"/><path d="M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M3 21v-5h5"/><path d="M21 3v5h-5"/></svg>
+      <i class="sync-dot" id="syncDot"></i>
+    </button>
+    <button class="icon-btn" id="btnExport" title="Backup">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+    </button>
+  </header>
+
+  <!-- ═══ BERANDA ═══ -->
+  <section class="view on" id="v-home">
+    <div class="hero">
+      <button class="hero-edit" id="btnSaldoAwal">Saldo awal</button>
+      <div class="lbl" id="hBalLbl">Saldo</div>
+      <div class="bal" id="hBal">Rp 0</div>
+      <div class="sub" id="hSub">—</div>
+      <div class="flow">
+        <div class="cell">
+          <div class="k"><i class="dot g"></i>Masuk</div>
+          <div class="v g" id="hIn">Rp 0</div>
+        </div>
+        <div class="cell">
+          <div class="k"><i class="dot r"></i>Keluar</div>
+          <div class="v r" id="hOut">Rp 0</div>
+        </div>
+      </div>
+      <div class="flow-note" id="hFlowNote">—</div>
+    </div>
+
+    <div class="banner" id="demoBanner">
+      <div class="bico">🧪</div>
+      <div class="btxt">
+        <b>Ini data contoh</b>
+        <small>Biar lo lihat bentuknya. Hapus kalau mau mulai dari nol.</small>
+      </div>
+      <button id="btnClearDemo">Hapus</button>
+    </div>
+
+    <div class="monthbar">
+      <div class="m" id="hMonth">—</div>
+      <div class="sp"></div>
+      <button class="chip" id="chipPrev">‹ Sebelumnya</button>
+      <button class="chip" id="chipNow">Bulan ini</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h">
+        <h2>Ke mana duitnya</h2>
+        <span id="donutTotal">—</span>
+      </div>
+      <div class="donut-wrap" id="donutWrap">
+        <div class="donut">
+          <svg width="118" height="118" viewBox="0 0 118 118">
+            <circle cx="59" cy="59" r="46" fill="none" stroke="#0d1018" stroke-width="15"/>
+            <g id="donutArcs"></g>
+          </svg>
+          <div class="mid"><div><b id="donutVal">—</b><small>terserap</small></div></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <div class="sec-title">
+      <h2>Transaksi</h2>
+      <button id="btnSeeAll">Lihat semua</button>
+    </div>
+    <div id="homeList"></div>
+  </section>
+
+  <!-- ═══ STATISTIK ═══ -->
+  <section class="view" id="v-stats">
+    <div class="monthbar" style="margin-top:4px">
+      <div class="m" id="sMonth">—</div>
+      <div class="sp"></div>
+      <button class="chip" id="sPrev">‹</button>
+      <button class="chip" id="sNext">›</button>
+    </div>
+
+    <div class="hero" style="padding:16px">
+      <div class="lbl">Rata-rata harian</div>
+      <div class="bal" id="sAvg" style="font-size:26px">Rp 0</div>
+      <div class="sub" id="sNote">—</div>
+    </div>
+
+    <div class="sec-title"><h2>Pengeluaran per kategori</h2></div>
+    <div class="panel"><div class="bars" id="sBars"></div></div>
+
+    <div class="sec-title"><h2>Bulan-bulan terakhir</h2></div>
+    <div class="monthlist" id="sMonths"></div>
+  </section>
+
+</body>
+</div>
+
+<!-- saldo awal -->
+<div class="sheet" id="sheetSaldo">
+  <div class="grab"></div>
+  <h3>Saldo awal</h3>
+  <p class="hint">Duit yang lo punya <b>sebelum</b> mulai nyatet di aplikasi ini. Saldo ini jadi titik start, lalu ditambah pemasukan dan dikurangi pengeluaran tiap bulan.</p>
+
+  <div class="field">
+    <label>Jumlah</label>
+    <div class="amount-box">
+      <span>Rp</span>
+      <input id="fSaldo" type="text" inputmode="numeric" placeholder="0" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Berlaku sejak</label>
+    <input id="fSaldoMonth" type="month">
+  </div>
+
+  <button class="btn-primary" id="btnSaveSaldo">Simpan saldo awal</button>
+  <button class="btn-ghost" id="btnCloseSaldo">Batal</button>
+</div>
+
+<!-- ═══ SHEET: SYNC ═══ -->
+<div class="sheet" id="sheetSync">
+  <div class="grab"></div>
+  <h2>Sync antar device</h2>
+  <p class="hint">
+    Isi kode ruang yang <b>sama</b> di semua HP. Data bakal gabung otomatis —
+    tambah, ubah, dan hapus ikut tersalin.
+  </p>
+
+  <div class="field">
+    <label>Kode ruang</label>
+    <input id="fRoom" type="text" placeholder="misal: surya-dompet-7x2k" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="field">
+    <label>Alamat server</label>
+    <input id="fServer" type="url" placeholder="https://..." autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="sync-state" id="syncState">Belum tersambung</div>
+
+  <button class="btn-primary" id="btnSyncSave">Simpan &amp; sinkron sekarang</button>
+  <button class="btn-ghost" id="btnSyncOff">Matikan sync di device ini</button>
+  <button class="ghost" id="btnCloseSync">Tutup</button>
+</div>
+
+<!-- ═══ SHEET: TRANSAKSI ═══ -->
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheetTx">
+  <div class="grab"></div>
+  <h3 id="txTitle">Catat transaksi</h3>
+  <div class="seg">
+    <button data-t="out" id="segOut">Pengeluaran</button>
+    <button data-t="in" id="segIn">Pemasukan</button>
+  </div>
+
+  <div class="field">
+    <label>Jumlah</label>
+    <div class="amount-box">
+      <span>Rp</span>
+      <input id="fAmount" type="text" inputmode="numeric" placeholder="0" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Kategori</label>
+    <div class="cats" id="catGrid"></div>
+  </div>
+
+  <div class="field">
+    <label>Catatan</label>
+    <input id="fNote" type="text" placeholder="misal: nasi padang" autocomplete="off" maxlength="60">
+  </div>
+  <div class="field">
+    <label>Tanggal</label>
+    <input id="fDate" type="date">
+  </div>
+
+  <button class="btn-primary" id="btnSave">Simpan</button>
+  <button class="btn-ghost hidden" id="btnDelete">Hapus transaksi ini</button>
+</div>
+
+<!-- txn detail -->
+<div class="sheet" id="sheetDetail">
+  <div class="grab"></div>
+  <h3>Detail transaksi</h3>
+  <div id="detailBody"></div>
+  <button class="btn-primary" id="btnEdit">Ubah</button>
+  <button class="btn-ghost" id="btnCloseDetail">Tutup</button>
+</div>
+
+<nav class="nav">
+  <div class="nav-in">
+    <button class="on" data-view="home">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V9.8"/></svg>
+      Beranda
+    </button>
+    <button class="fab" id="btnAdd" aria-label="Tambah">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button data-view="stats">
+      <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Statistik
+    </button>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script src="sync.js?v=23"></script>
+<script src="app.js?v=23"></script>
+</body>
+</html>
