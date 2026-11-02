@@ -1,4 +1,4 @@
-/* Pricedown — cuma buat judul "Dompet" (subset 1.6 KB) */
+/* Pricedown — judul & angka saldo (subset) */
 @font-face{
   font-family:"Pricedown";
   src:url("pricedown.woff2") format("woff2"),
@@ -6,7 +6,13 @@
   font-display:swap;
   font-weight:400;
 }
-
+/* Coolvetica — judul per section (subset) */
+@font-face{
+  font-family:"Coolvetica";
+  src:url("coolvetica.woff2") format("woff2");
+  font-display:swap;
+  font-weight:400;
+}
 :root{
   --bg:#0b0d12;
   --bg2:#11141c;
@@ -23,7 +29,6 @@
   --r:20px;
   --safe-b:env(safe-area-inset-bottom,0px);
 }
-
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
 :root,body{color-scheme:dark}
@@ -41,11 +46,9 @@ body{
 body.locked{overflow:hidden}
 button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer}
 input,select{font-family:inherit}
-
 /* ── shell ── */
 .app{max-width:520px;margin:0 auto;padding:0 16px calc(112px + var(--safe-b));}
 .app.sheet-open{pointer-events:none}
-
 /* ── header ── */
 .top{display:flex;align-items:center;gap:12px;padding:22px 2px 14px}
 .brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
@@ -56,7 +59,7 @@ input,select{font-family:inherit}
   box-shadow:0 6px 20px rgba(124,108,255,.42);
 }
 .brand h1{
-  margin:0;font-size:22px;font-weight:400;letter-spacing:.5px;
+  margin:0;font-size:27px;font-weight:400;letter-spacing:.5px;
   font-family:"Pricedown",system-ui,sans-serif;
   line-height:1.05;padding-top:2px;
   transform:translateY(.5px);
@@ -69,7 +72,6 @@ input,select{font-family:inherit}
 }
 .icon-btn:active{transform:scale(.94);color:var(--txt)}
 .icon-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-
 /* ── balance hero ── */
 .hero{
   position:relative;overflow:hidden;border-radius:24px;padding:20px;
@@ -85,8 +87,9 @@ input,select{font-family:inherit}
 }
 .hero .lbl{font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;color:#9aa3bd;font-weight:600}
 .hero .bal{
-  font-size:34px;font-weight:800;letter-spacing:-1px;margin:8px 0 2px;
-  font-variant-numeric:tabular-nums;line-height:1.1;
+  font-size:38px;font-weight:400;letter-spacing:.5px;margin:8px 0 2px;
+  font-family:"Pricedown",system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;line-height:1.15;
 }
 .hero .bal.neg{color:#ff8394}
 .hero .sub{font-size:12px;color:var(--muted)}
@@ -116,7 +119,6 @@ input,select{font-family:inherit}
 .dot.g{background:var(--green);box-shadow:0 0 8px var(--green)}
 .dot.r{background:var(--red);box-shadow:0 0 8px var(--red)}
 .v.g{color:var(--green)} .v.r{color:var(--red)}
-
 /* ── banner data contoh ── */
 .banner{
   display:flex;align-items:center;gap:11px;margin:14px 0 0;padding:11px 12px;
@@ -131,7 +133,6 @@ input,select{font-family:inherit}
   padding:7px 11px;border-radius:10px;font-size:11px;font-weight:700;
   background:rgba(255,179,64,.16);color:#ffcf80;flex:0 0 auto;
 }
-
 /* ── month picker ── */
 .monthbar{display:flex;align-items:center;gap:10px;margin:20px 2px 12px}
 .monthbar .m{font-size:13.5px;font-weight:650;letter-spacing:.2px}
@@ -141,13 +142,11 @@ input,select{font-family:inherit}
   background:var(--card);border:1px solid var(--line);color:var(--muted);transition:.15s;
 }
 .chip.on{background:rgba(124,108,255,.16);border-color:rgba(124,108,255,.55);color:#bdb4ff}
-
 /* ── donut ── */
 .panel{
   background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;
 }
 .panel-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.panel-h h2{margin:0;font-size:13.5px;font-weight:700;letter-spacing:.2px}
 .panel-h span{font-size:11px;color:var(--muted)}
 .donut-wrap{display:flex;align-items:center;gap:16px}
 .donut{position:relative;width:118px;height:118px;flex:0 0 118px}
@@ -163,10 +162,12 @@ input,select{font-family:inherit}
 .legend .nm{flex:1;color:#c2c8d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .legend .am{font-weight:650;font-variant-numeric:tabular-nums;color:#e6eaf3}
 .empty{color:var(--muted);font-size:12px;text-align:center;padding:18px 0}
-
 /* ── transaction list ── */
 .sec-title{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 10px}
-.sec-title h2{margin:0;font-size:13.5px;font-weight:700}
+.sec-title h2,.panel-h h2{
+  margin:0;font-size:17px;font-weight:400;letter-spacing:.4px;
+  font-family:"Coolvetica",system-ui,sans-serif;
+}
 .sec-title button{font-size:11.5px;color:var(--muted);font-weight:600}
 .dayhead{
   font-size:11px;font-weight:650;color:var(--muted);letter-spacing:.7px;
@@ -188,7 +189,6 @@ input,select{font-family:inherit}
 .row .c{font-size:11px;color:var(--muted);margin-top:3px;display:flex;gap:6px;align-items:center}
 .row .amt{font-size:13.5px;font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
 .amt.g{color:var(--green)} .amt.r{color:var(--red)}
-
 /* ── bottom nav ── */
 .nav{
   position:fixed;left:0;right:0;bottom:0;z-index:40;
@@ -215,7 +215,6 @@ input,select{font-family:inherit}
 }
 .nav .fab svg{width:24px;height:24px;stroke:#fff;stroke-width:2.4}
 .nav .fab:active{transform:translateY(-14px) scale(.94)}
-
 /* ── sheet ── */
 .backdrop{
   position:fixed;inset:0;z-index:60;background:rgba(4,6,10,.78);
@@ -234,7 +233,6 @@ input,select{font-family:inherit}
 .sheet.on{transform:translateY(0)}
 .grab{width:38px;height:4px;border-radius:9px;background:#39405a;margin:6px auto 16px}
 .sheet h3{margin:0 0 16px;font-size:17px;font-weight:750}
-
 /* segmented */
 .seg{display:flex;gap:6px;background:#0d1018;border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:16px}
 .seg button{
@@ -242,7 +240,6 @@ input,select{font-family:inherit}
 }
 .seg button.on[data-t="in"]{background:rgba(34,214,138,.16);color:var(--green);box-shadow:inset 0 0 0 1px rgba(34,214,138,.4)}
 .seg button.on[data-t="out"]{background:rgba(255,92,114,.15);color:var(--red);box-shadow:inset 0 0 0 1px rgba(255,92,114,.4)}
-
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;font-weight:650;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .field>input[type=text],.field>input[type=url],.field>input[type=month],.field>textarea,.field>select{-webkit-appearance:none;appearance:none;
@@ -288,14 +285,12 @@ input,select{font-family:inherit}
 .btn-primary:active{transform:scale(.98)}
 .btn-primary.danger{background:linear-gradient(150deg,#ff5c72,#c8283c);box-shadow:0 12px 26px -12px rgba(255,92,114,.85)}
 .btn-ghost{width:100%;padding:13px;border-radius:14px;font-size:13px;font-weight:650;color:var(--muted);margin-top:8px}
-
 /* stats */
 .bars{display:flex;flex-direction:column;gap:12px}
 .bar-row .bl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
 .bar-row .bl b{font-weight:650}
 .track{height:7px;border-radius:9px;background:#0d1018;overflow:hidden}
 .track i{display:block;height:100%;border-radius:9px;transition:width .5s cubic-bezier(.22,1,.36,1)}
-
 .monthlist{display:flex;flex-direction:column;gap:9px}
 .mrow{
   display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:15px;
@@ -309,11 +304,9 @@ input,select{font-family:inherit}
 .mrow .net{font-weight:750;font-size:13px;font-variant-numeric:tabular-nums;text-align:right}
 .mright{text-align:right;flex:0 0 auto}
 .carry{display:block;font-size:10px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
-
 .view{display:none}
 .view.on{display:block}
 .hidden{display:none!important}
-
 .toast{
   position:fixed;left:50%;bottom:calc(96px + var(--safe-b));transform:translate(-50%,18px);
   background:#242b3c;border:1px solid var(--line);color:var(--txt);
@@ -322,7 +315,6 @@ input,select{font-family:inherit}
   box-shadow:0 12px 30px -12px #000;
 }
 .toast.on{opacity:1;transform:translate(-50%,0)}
-
 /* ── sync sheet ── */
 .sync-state{font-size:12.5px;color:var(--muted);background:var(--card);border:1px solid var(--line);
   border-radius:12px;padding:11px 13px;margin-top:14px;line-height:1.45}
