@@ -1,0 +1,15 @@
+{
+  "name": "dompet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dompet — catatan keuangan PWA dengan sync antar device (Cloudflare Workers + D1)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute dompet-db --remote --file=./schema.sql",
+    "db:init:local": "wrangler d1 execute dompet-db --local --file=./schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

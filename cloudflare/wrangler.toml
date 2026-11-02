@@ -1,0 +1,14 @@
+name = "dompet-sync"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# Ganti dengan ID database D1 lo setelah `wrangler d1 create dompet`
+[[d1_databases]]
+binding = "DB"
+database_name = "dompet"
+database_id = "GANTI_DENGAN_ID_D1"
+
+# Kunci rahasia keluarga. JANGAN ditulis di sini.
+# Set lewat: npx wrangler secret put APP_KEY
+# [vars]
+# APP_KEY = "..."   # jangan! pakai secret
