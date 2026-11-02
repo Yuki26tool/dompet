@@ -92,6 +92,12 @@ input,select{font-family:inherit}
   font-variant-numeric:tabular-nums;line-height:1.15;
 }
 .hero .bal.neg{color:#ff8394}
+/* "Rp" pakai Coolvetica — huruf p Pricedown turun & gepeng */
+.hero .bal .cur{
+  font-family:"Coolvetica",system-ui,sans-serif;
+  font-size:.82em;letter-spacing:0;margin-right:.14em;
+  display:inline-block;
+}
 .hero .sub{font-size:12px;color:var(--muted)}
 .hero-edit{
   position:absolute;top:16px;right:16px;z-index:2;
