@@ -37,7 +37,7 @@ function makeSelf() {
         const out = [];
         for (const [k, r] of store) {
           const [rm, rid] = k.split('\u0000');
-          if (rm !== room || r.updated <= since) continue;
+          if (rm !== room || r.updated < since) continue;
           out.push({ rid, updated: r.updated, deleted: r.deleted, body: JSON.stringify(r.body) });
         }
         out.sort((a, b) => a.updated - b.updated);

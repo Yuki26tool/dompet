@@ -2,13 +2,12 @@ name = "dompet-sync"
 main = "src/index.js"
 compatibility_date = "2026-01-01"
 
-# Ganti dengan ID database D1 lo setelah `wrangler d1 create dompet`
+# Database D1 untuk record sync.
 [[d1_databases]]
 binding = "DB"
 database_name = "dompet"
-database_id = "GANTI_DENGAN_ID_D1"
+database_id = "d3c03863-6a34-42ea-a894-4c3adc88c5dc"
 
-# Kunci rahasia keluarga. JANGAN ditulis di sini.
-# Set lewat: npx wrangler secret put APP_KEY
-# [vars]
-# APP_KEY = "..."   # jangan! pakai secret
+# Catatan: worker ini TIDAK memakai secret global.
+# Kunci disimpan per ruang di tabel `rooms` (hash SHA-256), dibuat lewat
+# POST /api/room. Jadi `wrangler secret put APP_KEY` tidak diperlukan.

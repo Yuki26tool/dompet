@@ -151,6 +151,23 @@ let ROOM = '', KEY = '';
   cek('since menyaring', r.data.records.length === 1, String(r.data.records.length));
 }
 
+// 15b. REGRESI: dua record dengan `updated` sama tidak boleh ada yang hilang
+// saat klien memakai cursor = updated record terakhir (bukan jam server).
+{
+  const ts = 4500;
+  await call('/api/push?room=' + ROOM + '&key=' + encodeURIComponent(KEY), {
+    method: 'POST',
+    body: { records: [
+      { id: 'twin1', updated: ts, deleted: false, body: { id: 'twin1' } },
+      { id: 'twin2', updated: ts, deleted: false, body: { id: 'twin2' } },
+    ] },
+  });
+  const r = await call('/api/pull?room=' + ROOM + '&key=' + encodeURIComponent(KEY) + '&since=' + ts);
+  const ids = r.data.records.map(x => x.id);
+  cek('timestamp kembar tidak hilang',
+      ids.includes('twin1') && ids.includes('twin2'), JSON.stringify(ids));
+}
+
 // 16. ruang lain terpisah total
 let ROOM2 = '', KEY2 = '';
 {

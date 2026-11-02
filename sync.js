@@ -121,8 +121,22 @@
     if (res.status === 404) { const e = new Error('no room'); e.code = 404; throw e; }
     if (!res.ok) throw new Error('pull ' + res.status);
     const data = await res.json();
-    merge(data.records || []);
-    if (data.now) { cfg.last = data.now; saveCfg(); }
+    const recs = data.records || [];
+    merge(recs);
+    // Cursor diambil dari `updated` record yang benar-benar diterima, BUKAN dari
+    // jam server (`data.now`). `updated` ditulis pakai jam HP, jadi jam server yang
+    // lebih maju bisa melewati record dari HP yang jamnya sedikit di belakang —
+    // record itu lalu tidak pernah terkirim. Merge bersifat idempotent (LWW),
+    // jadi mengambil ulang batas cursor aman.
+    // Cursor = updated terbesar yang diterima. Query memakai `>=`, jadi record
+    // yang timestamp-nya kembar tetap ikut terkirim; merge idempotent (LWW),
+    // jadi menarik ulang batas cursor tidak merusak data.
+    let maxUpd = 0;
+    for (const r of recs) {
+      const u = Number(r.updated) || 0;
+      if (u > maxUpd) maxUpd = u;
+    }
+    if (maxUpd > (cfg.last || 0)) { cfg.last = maxUpd; saveCfg(); }
     return data;
   }
 

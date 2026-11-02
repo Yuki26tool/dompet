@@ -146,9 +146,12 @@ export default {
     let since = Number(url.searchParams.get('since') || 0);
     if (!isFinite(since) || since < 0) since = 0;
 
+    // Pakai >= bukan > : beberapa record bisa punya `updated` yang sama persis
+    // (dua device menyimpan di milidetik yang sama). Dengan `>` record yang
+    // timestamp-nya sama dengan cursor akan terlewat selamanya.
     const res = await env.DB.prepare(
       `SELECT rid, updated, deleted, body FROM records
-       WHERE room = ? AND updated > ? ORDER BY updated ASC LIMIT 5000`
+       WHERE room = ? AND updated >= ? ORDER BY updated ASC LIMIT 5000`
     ).bind(room, since).all();
 
     const list = (res.results || []).map(row => {
