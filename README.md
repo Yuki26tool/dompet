@@ -93,3 +93,18 @@ Skemanya sengaja dibuat sederhana. Tidak ada merge tiga arah, tidak ada vektor j
 ## Lisensi
 
 MIT — pakai, ubah, jual, terserah lo.
+
+---
+
+## Dokumen
+
+| File | Isi |
+|---|---|
+| [`docs/cara-dibuat.md`](docs/cara-dibuat.md) | Kenapa PWA, model data, saldo berantai, alasan tiap keputusan |
+| [`docs/jebakan.md`](docs/jebakan.md) | 10 bug yang buang waktu — `let` vs `window`, tombstone, cache, compositor |
+| [`docs/sync.md`](docs/sync.md) | Protokol sync, last-write-wins, tombstone, kontrak API |
+| [`docs/hosting.md`](docs/hosting.md) | Nyalakan Pages, jalankan server + tunnel, batasannya |
+
+## Lisensi
+
+MIT — lihat [LICENSE](LICENSE).
