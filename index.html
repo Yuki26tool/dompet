@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=23">
+<link rel="stylesheet" href="style.css?v=24">
 </head>
 <body>
 
@@ -147,13 +147,19 @@
   <div class="grab"></div>
   <h2>Sync antar device</h2>
   <p class="hint">
-    Isi kode ruang yang <b>sama</b> di semua HP. Data bakal gabung otomatis —
-    tambah, ubah, dan hapus ikut tersalin.
+    Satu HP ketuk <b>Buat ruang baru</b>, lalu bagikan <b>kode + kunci ruang</b>
+    ke HP lain lewat jalur aman (jangan diumbar). Tiap HP isi kode &amp; kunci
+    yang sama — data gabung otomatis.
   </p>
 
   <div class="field">
     <label>Kode ruang</label>
-    <input id="fRoom" type="text" placeholder="misal: surya-dompet-7x2k" autocomplete="off" spellcheck="false">
+    <input id="fRoom" type="text" placeholder="dibuat otomatis" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="field">
+    <label>Kunci ruang</label>
+    <input id="fKey" type="text" placeholder="dibuat otomatis" autocomplete="off" spellcheck="false">
   </div>
 
   <div class="field">
@@ -164,6 +170,7 @@
   <div class="sync-state" id="syncState">Belum tersambung</div>
 
   <button class="btn-primary" id="btnSyncSave">Simpan &amp; sinkron sekarang</button>
+  <button class="btn-ghost" id="btnRoomNew">Buat ruang baru</button>
   <button class="btn-ghost" id="btnSyncOff">Matikan sync di device ini</button>
   <button class="ghost" id="btnCloseSync">Tutup</button>
 </div>
@@ -231,7 +238,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="sync.js?v=23"></script>
-<script src="app.js?v=23"></script>
+<script src="sync.js?v=24"></script>
+<script src="app.js?v=24"></script>
 </body>
 </html>

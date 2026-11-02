@@ -95,7 +95,7 @@ function shiftMonth(k, delta){
   const d = new Date(y, m-1+delta, 1);
   return monthKey(d);
 }
-function inMonth(k){ return db.tx.filter(t => !t.del && t.date.startsWith(k)); }
+function inMonth(k){ return db.tx.filter(t => !t.deleted && t.date.startsWith(k)); }
 function toast(msg){
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('on');
@@ -106,7 +106,7 @@ function toast(msg){
 /* ---------- saldo berjalan ---------- */
 // total netto semua transaksi sebelum bulan tertentu (inklusif/batas)
 function netBefore(monthK){
-  return db.tx.filter(t => !t.del).reduce((a,t) => t.date.slice(0,7) < monthK
+  return db.tx.filter(t => !t.deleted).reduce((a,t) => t.date.slice(0,7) < monthK
     ? a + (t.type === 'in' ? t.amt : -t.amt) : a, 0);
 }
 // saldo awal sebuah bulan = saldo awal tersimpan (kalau bulannya lebih tua) + semua transaksi sebelum bulan itu
@@ -119,7 +119,7 @@ function openingOf(monthK){
   }
   // saldo awal berlaku: hitung hanya transaksi dari bulan saldo awal s/d sebelum bulan ini
   const from = base.month;
-  const move = db.tx.filter(t => !t.del).reduce((a,t) => {
+  const move = db.tx.filter(t => !t.deleted).reduce((a,t) => {
     const k = t.date.slice(0,7);
     return (k >= from && k < monthK) ? a + (t.type === 'in' ? t.amt : -t.amt) : a;
   }, 0);
@@ -129,7 +129,7 @@ function closingOf(monthK){
   return openingOf(monthK) + monthNet(monthK);
 }
 function monthNet(monthK){
-  return db.tx.filter(t => !t.del).reduce((a,t) => t.date.slice(0,7) === monthK
+  return db.tx.filter(t => !t.deleted).reduce((a,t) => t.date.slice(0,7) === monthK
     ? a + (t.type === 'in' ? t.amt : -t.amt) : a, 0);
 }
 
@@ -463,7 +463,7 @@ function openSaldo(){
 function saveSaldo(){
   const amt = num(document.getElementById('fSaldo').value);
   const m   = document.getElementById('fSaldoMonth').value || monthKey(new Date());
-  db.opening = { amount: amt, month: m };
+  db.opening = { amount: amt, month: m, updated: Date.now() };
   db.demo = false;
   save(); closeSheets(); renderAll();
   toast('Saldo awal ' + rp(amt, true) + ' diset');
@@ -473,15 +473,16 @@ function saveSaldo(){
 function openSync(){
   const c = SYNC.cfg;
   document.getElementById('fRoom').value = c.room || '';
+  document.getElementById('fKey').value = c.key || '';
   document.getElementById('fServer').value = c.url || '';
   renderSyncState();
   showSheet('sheetSync');
 }
 
-function renderSyncState(){
+function renderSyncState(detail){
   const el = document.getElementById('syncState');
   if (!el) return;
-  const st = SYNC.status();
+  const st = SYNC.status(detail);
   el.className = 'sync-state' + (st.connected ? ' ok' : st.on ? '' : '');
   el.textContent = st.text;
 }
@@ -490,13 +491,32 @@ window.updateSyncUI = renderSyncState;
 
 function saveSyncCfg(){
   const room = document.getElementById('fRoom').value.trim();
+  const key = document.getElementById('fKey').value.trim();
   const server = document.getElementById('fServer').value.trim().replace(/\/+$/, '');
   if (!room) { toast('Kode ruang masih kosong'); return; }
   if (!/^https?:\/\//i.test(server)) { toast('Alamat server harus http:// atau https://'); return; }
-  SYNC.set(server, room);
+  SYNC.set(server, room, key);
   renderSyncState();
   toast('Sync disiapkan — menarik data…');
   setTimeout(() => SYNC.pullNow(), 100);
+}
+
+async function makeRoom(){
+  const server = document.getElementById('fServer').value.trim().replace(/\/+$/, '');
+  if (!/^https?:\/\//i.test(server)) { toast('Isi alamat server dulu'); return; }
+  // set dulu alamatnya supaya createRoom tahu base URL
+  SYNC.cfg.url = server;
+  toast('Membuat ruang…');
+  try {
+    const r = await SYNC.createRoom();
+    document.getElementById('fRoom').value = r.room;
+    document.getElementById('fKey').value = r.key;
+    SYNC.set(server, r.room, r.key);
+    renderSyncState();
+    toast('Ruang dibuat — bagikan kode & kunci ke keluarga');
+  } catch(e) {
+    toast('Gagal membuat ruang');
+  }
 }
 
 function syncOff(){
@@ -543,6 +563,7 @@ function init(){
   document.getElementById('btnExport').onclick = exportJson;
   document.getElementById('btnSync').onclick = openSync;
   document.getElementById('btnSyncSave').onclick = saveSyncCfg;
+  document.getElementById('btnRoomNew').onclick = makeRoom;
   document.getElementById('btnSyncOff').onclick = syncOff;
   document.getElementById('btnSaldoAwal').onclick = openSaldo;
   document.getElementById('btnSaveSaldo').onclick = saveSaldo;

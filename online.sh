@@ -2,9 +2,10 @@
 # Dompet — nyalakan app + sync server + tunnel publik.
 # Pakai:  sh online.sh          (nyalakan)
 #         sh online.sh stop     (matikan)
-DIR=/var/minis/workspace/dompet
-PORT=8110
-LOG=/tmp/dompet-online.log
+# Direktori repo = folder tempat skrip ini berada (bisa di-override via env)
+DIR="${DOMPET_ROOT:-$(cd "$(dirname "$0")" && pwd)}"
+PORT="${PORT:-8110}"
+LOG="${DOMPET_LOG:-/tmp/dompet-online.log}"
 
 stop() {
   pkill -f 'serve_all.py' 2>/dev/null

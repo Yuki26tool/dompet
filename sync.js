@@ -6,7 +6,7 @@
   const KEY = 'dompet.sync.v1';
   const OPENING_ID = '__opening__';
 
-  let cfg = { url: '', room: '', last: 0, on: false };
+  let cfg = { url: '', room: '', key: '', last: 0, on: false };
   try { Object.assign(cfg, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
 
   let busy = false;
@@ -17,7 +17,7 @@
   const base = () => (cfg.url || '').replace(/\/+$/, '');
   const active = () => !!(cfg.on && cfg.url && cfg.room);
 
-  function setState(s) {
+  function setState(s, detail) {
     state = s;
     const dot = document.getElementById('syncDot');
     if (dot) {
@@ -28,11 +28,11 @@
     if (el) {
       el.textContent =
         s === 'ok' ? 'Tersambung — ' + cfg.room :
-        s === 'err' ? 'Gagal menyambung ke server' :
+        s === 'err' ? (detail || 'Gagal menyambung ke server') :
         s === 'wait' ? 'Menyinkronkan…' :
         active() ? 'Menunggu sinkron' : 'Belum tersambung — data cuma di HP ini';
     }
-    if (window.updateSyncUI) window.updateSyncUI();
+    if (window.updateSyncUI) window.updateSyncUI(detail);
   }
 
   /* Semua record lokal dalam bentuk {id, updated, ...body}. */
@@ -95,8 +95,10 @@
     return changed;
   }
 
+  const qkey = () => '&key=' + encodeURIComponent(cfg.key || '');
+
   async function push() {
-    const res = await fetch(base() + '/api/push?room=' + encodeURIComponent(cfg.room), {
+    const res = await fetch(base() + '/api/push?room=' + encodeURIComponent(cfg.room) + qkey(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -105,19 +107,29 @@
         client: cfg.last,
       }),
     });
+    if (res.status === 403) { const e = new Error('bad key'); e.code = 403; throw e; }
+    if (res.status === 404) { const e = new Error('no room'); e.code = 404; throw e; }
     if (!res.ok) throw new Error('push ' + res.status);
     return res.json();
   }
 
   async function pull() {
     const res = await fetch(
-      base() + '/api/pull?room=' + encodeURIComponent(cfg.room) + '&since=' + (cfg.last || 0)
+      base() + '/api/pull?room=' + encodeURIComponent(cfg.room) + qkey() + '&since=' + (cfg.last || 0)
     );
+    if (res.status === 403) { const e = new Error('bad key'); e.code = 403; throw e; }
+    if (res.status === 404) { const e = new Error('no room'); e.code = 404; throw e; }
     if (!res.ok) throw new Error('pull ' + res.status);
     const data = await res.json();
     merge(data.records || []);
     if (data.now) { cfg.last = data.now; saveCfg(); }
     return data;
+  }
+
+  async function createRoom() {
+    const res = await fetch(base() + '/api/room', { method: 'POST' });
+    if (!res.ok) throw new Error('room ' + res.status);
+    return res.json(); // {room, key} — kunci cuma muncul SEKALI di sini
   }
 
   async function round(silent) {
@@ -129,7 +141,10 @@
       await pull();
       setState('ok');
     } catch (e) {
-      setState('err');
+      const detail =
+        e.code === 403 ? 'Kunci ruang salah — cek lagi' :
+        e.code === 404 ? 'Ruang tidak ada di server' : null;
+      setState('err', detail);
       if (!silent) console.warn('[sync]', e.message);
     } finally {
       busy = false;
@@ -144,7 +159,7 @@
 
   window.SYNC = {
     cfg,
-    status() {
+    status(detail) {
       return {
         on: !!cfg.on,
         connected: state === 'ok',
@@ -152,19 +167,21 @@
         server: cfg.url || '',
         text:
           state === 'ok' ? 'Tersambung — ' + cfg.room :
-          state === 'err' ? 'Gagal menyambung ke server' :
+          state === 'err' ? (detail || 'Gagal menyambung ke server') :
           active() ? 'Menunggu sinkron' : 'Belum tersambung — data cuma di HP ini',
       };
     },
-    set(url, room) {
+    set(url, room, key) {
       cfg.url = (url || '').trim();
       cfg.room = (room || '').trim();
+      cfg.key = (key || '').trim();
       cfg.on = !!(cfg.url && cfg.room);
       cfg.last = 0;
       saveCfg();
       if (cfg.on) start(); else { if (timer) clearInterval(timer); timer = null; setState('off'); }
       return cfg;
     },
+    createRoom,
     off() {
       cfg.on = false;
       saveCfg();

@@ -1,5 +1,6 @@
 # Diabaikan git
 .DS_Store
+.env
 *.db
 *.db-wal
 *.db-shm

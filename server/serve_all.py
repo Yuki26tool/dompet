@@ -2,6 +2,8 @@
 """Dompet — satu server: sajikan file app (statis) + API sync.
 stdlib only. PORT=8099, root app = folder induk, db = /var/minis/shared/dompet/sync.db
 """
+import hashlib
+import hmac
 import json, os, secrets, sqlite3, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs, unquote
@@ -34,7 +36,34 @@ def conn():
         upd REAL NOT NULL, PRIMARY KEY(room, rid))""")
     c.execute("""CREATE TABLE IF NOT EXISTS rooms(
         room TEXT PRIMARY KEY, created REAL NOT NULL)""")
+    # migrasi: ruang lama tidak punya kolom kunci
+    try:
+        c.execute("ALTER TABLE rooms ADD COLUMN key_hash TEXT")
+    except sqlite3.OperationalError:
+        pass
     return c
+
+
+def _hash_key(key):
+    return hashlib.sha256(key.encode()).hexdigest()
+
+
+def _check_key(c, room, key):
+    """True kalau ruang boleh diakses dengan kunci ini.
+    Ruang lama (key_hash NULL) tetap bisa diakses tanpa kunci."""
+    row = c.execute("SELECT key_hash FROM rooms WHERE room=?", (room,)).fetchone()
+    if not row:
+        return None  # ruang tidak ada
+    kh = row[0]
+    if not kh:
+        return True  # legacy: tanpa kunci
+    if not key:
+        return False
+    return hmac.compare_digest(kh, _hash_key(key))
+
+
+def now_ms():
+    return int(time.time() * 1000)
 
 
 class H(BaseHTTPRequestHandler):
@@ -101,6 +130,7 @@ class H(BaseHTTPRequestHandler):
         if u.path != "/api/pull":
             return self._send(404, {"error": "not found"})
         room = (q.get("room") or [""])[0].strip()
+        key = (q.get("key") or [""])[0]
         if not room:
             return self._send(400, {"error": "room required"})
         try:
@@ -109,6 +139,11 @@ class H(BaseHTTPRequestHandler):
             since = 0.0
         c = conn()
         try:
+            ok = _check_key(c, room, key)
+            if ok is None:
+                return self._send(404, {"error": "room not found"})
+            if not ok:
+                return self._send(403, {"error": "bad key"})
             rows = c.execute(
                 "SELECT rid, body, upd FROM recs WHERE room=? AND upd>? ORDER BY upd",
                 (room, since)).fetchall()
@@ -125,26 +160,36 @@ class H(BaseHTTPRequestHandler):
             item["id"] = rid
             item["updated"] = upd
             out.append(item)
-        return self._send(200, {"records": out, "now": time.time()})
+        return self._send(200, {"records": out, "now": now_ms()})
 
     def do_POST(self):
         u = urlparse(self.path)
         q = parse_qs(u.query)
         if u.path == "/api/room":
-            room = secrets.token_urlsafe(12)
+            # Buat ruang baru + kunci acak. Kunci dikembalikan SEKALI di sini —
+            # catat & bagikan ke anggota keluarga lewat jalur aman.
             c = conn()
             try:
-                c.execute("INSERT OR IGNORE INTO rooms(room,created) VALUES(?,?)",
-                          (room, time.time()))
+                for _ in range(5):
+                    room = secrets.token_urlsafe(9)
+                    key = secrets.token_urlsafe(24)
+                    cur = c.execute(
+                        "INSERT OR IGNORE INTO rooms(room,created,key_hash) VALUES(?,?,?)",
+                        (room, time.time(), _hash_key(key)))
+                    if cur.rowcount:
+                        break
+                else:
+                    return self._send(500, {"error": "try again"})
                 c.commit()
             finally:
                 c.close()
-            return self._send(200, {"room": room})
+            return self._send(200, {"room": room, "key": key})
 
         if u.path != "/api/push":
             return self._send(404, {"error": "not found"})
 
         room = (q.get("room") or [""])[0].strip()
+        key = (q.get("key") or [""])[0]
         if not room:
             return self._send(400, {"error": "room required"})
 
@@ -156,9 +201,19 @@ class H(BaseHTTPRequestHandler):
         except Exception:
             return self._send(400, {"error": "bad json"})
 
+        c = conn()
+        try:
+            ok = _check_key(c, room, key)
+            if ok is None:
+                return self._send(404, {"error": "room not found"})
+            if not ok:
+                return self._send(403, {"error": "bad key"})
+        finally:
+            c.close()
+
         recs = payload.get("records") or []
         opening = payload.get("opening")
-        now = time.time()
+        now = now_ms()
         items = []
 
         for r in recs:
@@ -172,7 +227,6 @@ class H(BaseHTTPRequestHandler):
 
         c = conn()
         try:
-            c.execute("INSERT OR IGNORE INTO rooms(room,created) VALUES(?,?)", (room, now))
             for rid, body, upd in items:
                 cur = c.execute("SELECT upd FROM recs WHERE room=? AND rid=?",
                                 (room, rid)).fetchone()

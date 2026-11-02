@@ -54,11 +54,16 @@ Skrip itu menjalankan `server/serve_all.py` (port 8110) dan membukakan Cloudflar
 Buka URL itu di semua HP, lalu di app:
 
 1. Ketuk ikon sync di kanan atas
-2. **Kode ruang**: satu kata kunci yang sama di semua HP, misal `surya-dompet-7x2k`
-3. **Alamat server**: URL publik tadi
-4. **Simpan & sinkron sekarang**
+2. **Alamat server**: URL publik tadi
+3. Ketuk **Buat ruang baru** — server membuat kode ruang + kunci acak
+4. Bagikan **kode + kunci ruang** ke HP lain lewat jalur aman (chat pribadi, jangan diumbar)
+5. Di HP lain: isi kode ruang, kunci ruang, dan alamat server yang sama → **Simpan & sinkron sekarang**
 
 Data dari semua HP langsung bergabung. Selesai.
+
+> Repo ini **contoh publik**. Jangan pakai kode/kunci contoh dari dokumentasi untuk
+> data beneran — selalu buat ruang baru. Jangan commit URL server asli, kode ruang,
+> atau kunci ruang ke repo (semuanya tersimpan di localStorage masing-masing HP).
 
 ```sh
 sh online.sh url     # lihat URL yang sedang aktif
@@ -71,9 +76,13 @@ Proto kolaborasi sederhana, cukup untuk beberapa device milik satu orang:
 
 | Endpoint | Fungsi |
 |---|---|
-| `POST /api/push?room=<room>` | Kirim semua record lokal |
-| `GET /api/pull?room=<room>&since=<ts>` | Ambil record yang lebih baru dari `since` |
+| `POST /api/room` | Buat ruang baru → `{room, key}` (kunci cuma muncul sekali) |
+| `POST /api/push?room=<room>&key=<key>` | Kirim semua record lokal |
+| `GET /api/pull?room=<room>&key=<key>&since=<ts>` | Ambil record yang lebih baru dari `since` |
 | `GET /api/health` | Cek server hidup |
+
+Kunci ruang disimpan di server sebagai hash SHA-256 (bukan plaintext). Ruang lama
+tanpa kunci tetap bisa diakses tanpa kunci — buat ruang baru kalau mau proteksi penuh.
 
 - **Unit sinkronisasi = satu transaksi**, bukan satu file. Dua device ubah transaksi berbeda → keduanya aman.
 - **Konflik** diselesaikan per record: nilai dengan `updated` (epoch ms) terbesar yang menang — *last-write-wins*.
