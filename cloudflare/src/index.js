@@ -102,6 +102,12 @@ export default {
       }
     }
 
+    // Bukan /api/* → sajikan app statis (index.html, css, js, ikon)
+    if (!path.startsWith('/api/')) {
+      if (env.ASSETS) return env.ASSETS.fetch(req);
+      return json({ error: 'rute tak dikenal' }, 404);
+    }
+
     if (path !== '/api/push' && path !== '/api/pull') return json({ error: 'rute tak dikenal' }, 404);
 
     const room = (url.searchParams.get('room') || '').trim();

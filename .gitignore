@@ -13,3 +13,6 @@ __pycache__/
 push.sh
 _*.txt
 ui-sync.patch.js
+
+# Salinan build app untuk worker assets (dibuat oleh cloudflare/build.sh)
+cloudflare/public/

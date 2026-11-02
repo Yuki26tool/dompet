@@ -2,12 +2,15 @@ name = "dompet-sync"
 main = "src/index.js"
 compatibility_date = "2026-01-01"
 
-# Database D1 untuk record sync.
+# App statis (index.html, css, js, ikon) disajikan worker di rute non-/api/*
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "dompet"
 database_id = "d3c03863-6a34-42ea-a894-4c3adc88c5dc"
 
-# Catatan: worker ini TIDAK memakai secret global.
-# Kunci disimpan per ruang di tabel `rooms` (hash SHA-256), dibuat lewat
-# POST /api/room. Jadi `wrangler secret put APP_KEY` tidak diperlukan.
+# Tidak ada secret global: kunci dibuat per ruang lewat POST /api/room
+# dan disimpan sebagai hash SHA-256 di tabel `rooms`.
