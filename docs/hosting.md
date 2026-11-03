@@ -47,23 +47,66 @@ sh online.sh stop     # matikan
 
 ### Sambungkan dari HP
 
-Buka app → **Sync antar device** → isi:
+Buka app → **Sync antar device** → isi alamat server dulu, lalu ketuk
+**Buat ruang baru**. Server membuat kode ruang + kunci acak — bagikan
+**keduanya** ke HP lain lewat jalur aman (jangan diumbar). Di HP lain isi
+kode ruang, kunci ruang, dan alamat server yang sama → **Simpan & sinkron
+sekarang**.
 
-| Field | Isi |
-|---|---|
-| Kode ruang | bebas, **harus sama** di semua device |
-| Alamat server | URL yang dicetak `online.sh` |
-
-Simpan. Device lain dengan dua nilai sama akan ikut bergabung.
+Kunci disimpan di server sebagai hash SHA-256, bukan plaintext. Tanpa kunci
+yang benar, server menolak (403).
 
 ### Batasan quick tunnel
 
 - URL **berubah** setiap kali `cloudflared` dijalankan ulang (gratis, tanpa akun)
 - Server jalan di komputer/HP kamu — kalau mati, sync berhenti
-- Kode ruang adalah satu-satunya kunci. Siapa pun yang tahu kodenya bisa baca & tulis data
 
-Untuk yang permanen: pakai **named tunnel** Cloudflare (butuh akun, URL tetap), atau taruh
-`server/serve_all.py` di VPS mana pun.
+Untuk yang permanen: pakai **named tunnel** Cloudflare (butuh akun, URL tetap),
+taruh `server/serve_all.py` di VPS mana pun, atau opsi gratis di bawah.
+
+### Opsi: InstaBox (cloud Linux gratis)
+
+[InstaBox](https://instabox.sh) memberi 1 microVM gratis (4 vCPU / 8 GB).
+Server Dompet jalan di sana sebagai systemd service, port-nya dipublish jadi
+URL HTTPS publik yang permanen:
+
+```sh
+# di dalam machine (Debian 13)
+git clone --depth 1 https://github.com/Yuki26tool/dompet /data/dompet
+sudo tee /etc/systemd/system/dompet.service > /dev/null <<'EOF'
+[Unit]
+Description=Dompet sync server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /data/dompet/server/serve_all.py
+Environment=PORT=8110
+Environment=DOMPET_DB=/data/dompet-data/sync.db
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload && sudo systemctl enable --now dompet
+```
+
+Lalu publish port via API (atau dashboard):
+
+```sh
+curl -X POST https://api.instabox.sh/v1/machines/<id>/ports \
+  -H "X-API-Key: $INSTABOX_API_KEY" -H 'Content-Type: application/json' \
+  -d '{"port":8110,"name":"Dompet sync"}'
+# → {"url":"https://8110-<id>.instabox.tech", ...}
+```
+
+Catatan:
+
+- Paket gratis **pause otomatis setelah 30 menit idle** — tapi kunjungan ke URL
+  publik membangunkan machine sendiri (<1 detik), jadi sync dari HP tetap jalan.
+- Database di `/data` (persistent, selamat dari restart). Backup berkala
+  disarankan: `sqlite3 /data/dompet-data/sync.db .dump`.
 
 ## 3. App tetap jalan tanpa server
 
