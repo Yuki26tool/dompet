@@ -21,8 +21,23 @@ const INC = [
   { id:'bunga',  n:'Bunga',   i:'📈', c:'#86efac' },
   { id:'lain',   n:'Lainnya', i:'✨', c:'#8b93a7' },
 ];
+/* Tabungan & aset: BUKAN pemasukan/pengeluaran. Nilainya nambah kekayaan,
+   tapi tidak masuk hitungan arus kas (Masuk/Keluar) maupun saldo bulanan. */
+const SAV = [
+  { id:'darurat',  n:'Darurat',  i:'🛟', c:'#4cc9f0' },
+  { id:'tabungan', n:'Tabungan', i:'🏦', c:'#22d68a' },
+  { id:'emas',     n:'Emas',     i:'🪙', c:'#ffc64d' },
+  { id:'reksa',    n:'Reksa',    i:'📈', c:'#a78bfa' },
+];
+const AST = [
+  { id:'motor',    n:'Motor',    i:'🛵', c:'#ff8a4c' },
+  { id:'elektronik',n:'Elektronik',i:'💻',c:'#60a5fa' },
+  { id:'tanah',    n:'Tanah',    i:'🏞️', c:'#34d399' },
+  { id:'lain',     n:'Lainnya',  i:'✨', c:'#8b93a7' },
+];
 const ALL = [...EXP, ...INC];
-const catOf = (id, type) => (type === 'in' ? INC : EXP).find(c => c.id === id)
+const poolOf = (type) => type === 'in' ? INC : type === 'sav' ? SAV : type === 'ast' ? AST : EXP;
+const catOf = (id, type) => poolOf(type).find(c => c.id === id)
   || ALL.find(c => c.id === id) || { n:'Lainnya', i:'✨', c:'#8b93a7' };
 
 const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -96,6 +111,16 @@ function shiftMonth(k, delta){
   return monthKey(d);
 }
 function inMonth(k){ return db.tx.filter(t => !t.deleted && t.date.startsWith(k)); }
+/* arus kas = masuk/keluar saja. tabungan & aset punya jalur sendiri. */
+const isFlow = (t) => t.type === 'in' || t.type === 'out';
+const isSave = (t) => t.type === 'sav' || t.type === 'ast';
+const signOf = (t) => t.type === 'in' ? 1 : t.type === 'out' ? -1 : 0;
+/* nilai tabungan/aset per bulan = akumulasi semua record sampai bulan itu */
+function saveTotalAt(k, type){
+  return db.tx.filter(t => !t.deleted && t.type === type && t.date.slice(0,7) <= k)
+    .reduce((a,t) => a + t.amt, 0);
+}
+function saveTotal(type){ return saveTotalAt('9999-12', type); }
 function toast(msg){
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('on');
@@ -106,8 +131,8 @@ function toast(msg){
 /* ---------- saldo berjalan ---------- */
 // total netto semua transaksi sebelum bulan tertentu (inklusif/batas)
 function netBefore(monthK){
-  return db.tx.filter(t => !t.deleted).reduce((a,t) => t.date.slice(0,7) < monthK
-    ? a + (t.type === 'in' ? t.amt : -t.amt) : a, 0);
+  return db.tx.filter(t => !t.deleted && isFlow(t)).reduce((a,t) => t.date.slice(0,7) < monthK
+    ? a + signOf(t) * t.amt : a, 0);
 }
 // saldo awal sebuah bulan = saldo awal tersimpan (kalau bulannya lebih tua) + semua transaksi sebelum bulan itu
 function openingOf(monthK){
@@ -119,9 +144,9 @@ function openingOf(monthK){
   }
   // saldo awal berlaku: hitung hanya transaksi dari bulan saldo awal s/d sebelum bulan ini
   const from = base.month;
-  const move = db.tx.filter(t => !t.deleted).reduce((a,t) => {
+  const move = db.tx.filter(t => !t.deleted && isFlow(t)).reduce((a,t) => {
     const k = t.date.slice(0,7);
-    return (k >= from && k < monthK) ? a + (t.type === 'in' ? t.amt : -t.amt) : a;
+    return (k >= from && k < monthK) ? a + signOf(t) * t.amt : a;
   }, 0);
   return base.amount + move;
 }
@@ -129,8 +154,8 @@ function closingOf(monthK){
   return openingOf(monthK) + monthNet(monthK);
 }
 function monthNet(monthK){
-  return db.tx.filter(t => !t.deleted).reduce((a,t) => t.date.slice(0,7) === monthK
-    ? a + (t.type === 'in' ? t.amt : -t.amt) : a, 0);
+  return db.tx.filter(t => !t.deleted && isFlow(t)).reduce((a,t) => t.date.slice(0,7) === monthK
+    ? a + signOf(t) * t.amt : a, 0);
 }
 
 function renderHome(){
@@ -140,6 +165,10 @@ function renderHome(){
 
   const opening = openingOf(cursor);
   const closing = opening + tin - tout;
+  const savTot = saveTotalAt(cursor, 'sav');
+  const astTot = saveTotalAt(cursor, 'ast');
+  const savMonth = list.filter(t => t.type === 'sav').reduce((a,t) => a + t.amt, 0);
+  const astMonth = list.filter(t => t.type === 'ast').reduce((a,t) => a + t.amt, 0);
 
   const balEl = document.getElementById('hBal');
   balEl.textContent = (closing < 0 ? '−' : '') + rp(Math.abs(closing));
@@ -148,6 +177,24 @@ function renderHome(){
 
   document.getElementById('hIn').textContent  = rp(tin, true);
   document.getElementById('hOut').textContent = rp(tout, true);
+
+  const sEl = document.getElementById('hSav'), aEl = document.getElementById('hAst');
+  if (sEl) {
+    sEl.textContent = rp(savTot, true);
+    document.getElementById('hSavSub').textContent =
+      savMonth > 0 ? '+' + rp(savMonth, true).replace('Rp ','') + ' bulan ini' : 'tidak termasuk arus kas';
+  }
+  if (aEl) {
+    aEl.textContent = rp(astTot, true);
+    document.getElementById('hAstSub').textContent =
+      astMonth > 0 ? '+' + rp(astMonth, true).replace('Rp ','') + ' bulan ini' : 'tidak termasuk arus kas';
+  }
+  const nwEl = document.getElementById('hNet');
+  if (nwEl) {
+    const nw = closing + savTot + astTot;
+    nwEl.textContent = (nw < 0 ? '−' : '') + rp(Math.abs(nw), true);
+    nwEl.classList.toggle('neg', nw < 0);
+  }
   document.getElementById('hMonth').textContent = monthLabel(cursor);
 
   document.getElementById('hFlowNote').innerHTML =
@@ -242,19 +289,20 @@ function renderList(list, mountId, limit){
   let html = '';
   Object.keys(groups).sort().reverse().forEach(date => {
     const items = groups[date];
-    const net = items.reduce((a,t) => a + (t.type === 'in' ? t.amt : -t.amt), 0);
+    const net = items.reduce((a,t) => a + signOf(t) * t.amt, 0);
     html += `<div class="dayhead"><span>${dayLabel(date)}</span>
       <span class="net" style="color:${net>=0?'#22d68a':'#ff8b9b'}">${net>=0?'+':'−'}${rp(Math.abs(net),true).replace('Rp ','')}</span></div><div class="list">`;
     items.forEach(t => {
       const c = catOf(t.cat, t.type);
-      const sign = t.type === 'in' ? '+' : '−';
+      const sign = t.type === 'in' ? '+' : t.type === 'out' ? '−' : '';
+      const cls = t.type === 'in' ? 'g' : t.type === 'out' ? 'r' : 'b';
       html += `<div class="row" data-id="${t.id}">
         <div class="av">${c.i}</div>
         <div class="body">
           <div class="t">${esc(t.note || c.n)}</div>
           <div class="c"><span style="color:${c.c}">${c.n}</span></div>
         </div>
-        <div class="amt ${t.type === 'in' ? 'g':'r'}">${sign}${rp(t.amt, true).replace('Rp ','')}</div>
+        <div class="amt ${cls}">${sign}${rp(t.amt, true).replace('Rp ','')}</div>
       </div>`;
     });
     html += '</div>';
@@ -270,6 +318,12 @@ function renderStats(){
   const tin  = list.filter(t => t.type === 'in').reduce((a,t) => a + t.amt, 0);
   const tout = list.filter(t => t.type === 'out').reduce((a,t) => a + t.amt, 0);
   document.getElementById('sMonth').textContent = monthLabel(cursor);
+
+  const savM = list.filter(t => t.type === 'sav').reduce((a,t) => a + t.amt, 0);
+  const astM = list.filter(t => t.type === 'ast').reduce((a,t) => a + t.amt, 0);
+  const sSav = document.getElementById('sSav'), sAst = document.getElementById('sAst');
+  if (sSav) sSav.textContent = rp(savM, true);
+  if (sAst) sAst.textContent = rp(astM, true);
 
   const days = new Date(+cursor.slice(0,4), +cursor.slice(5,7), 0).getDate();
   const isNow = cursor === monthKey(new Date());
@@ -355,16 +409,21 @@ function openTx(preset){
 
 function setSeg(type){
   form.type = type;
-  document.getElementById('segOut').classList.toggle('on', type === 'out');
-  document.getElementById('segIn').classList.toggle('on', type === 'in');
-  document.getElementById('fNote').placeholder = type === 'in' ? 'misal: gaji november' : 'misal: nasi padang';
-  const pool = type === 'in' ? INC : EXP;
+  ['segOut','segIn','segSav','segAst'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('on', el.dataset.t === type);
+  });
+  const ph = { in:'misal: gaji november', out:'misal: nasi padang',
+               sav:'misal: nabung bulanan', ast:'misal: beli laptop' };
+  document.getElementById('fNote').placeholder = ph[type] || '';
+  const pool = poolOf(type);
   if (!pool.some(c => c.id === form.cat)) form.cat = pool[0].id;
+  /* field saldo awal & tombol hapus hanya relevan untuk arus kas */
   renderCats();
 }
 
 function renderCats(){
-  const list = form.type === 'in' ? INC : EXP;
+  const list = poolOf(form.type);
   if (!list.some(c => c.id === form.cat)) form.cat = list[0].id;
   const g = document.getElementById('catGrid');
   g.style.gridTemplateColumns = `repeat(${list.length <= 6 ? 3 : 5},1fr)`;
@@ -386,7 +445,8 @@ function saveTx(){
     toast('Transaksi diubah');
   } else {
     db.tx.push({ id:uid(), type:form.type, amt, cat:form.cat, note, date, updated:Date.now() });
-    toast(form.type === 'in' ? 'Pemasukan tercatat ✓' : 'Pengeluaran tercatat ✓');
+    toast({ in:'Pemasukan tercatat ✓', out:'Pengeluaran tercatat ✓',
+            sav:'Tabungan dicatat ✓', ast:'Aset dicatat ✓' }[form.type] || 'Tercatat ✓');
   }
   db.demo = false; showAll = false;
   cursor = date.slice(0,7);
@@ -414,17 +474,22 @@ function openDetail(id){
   document.getElementById('detailBody').innerHTML = `
     <div style="text-align:center;padding:6px 0 20px">
       <div class="av" style="width:64px;height:64px;flex:none;margin:0 auto 14px;font-size:30px;border-radius:20px">${c.i}</div>
-      <div style="font-size:27px;font-weight:800;letter-spacing:-.5px;color:${t.type==='in'?'#22d68a':'#ff5c72'};font-variant-numeric:tabular-nums">
-        ${t.type==='in'?'+':'−'}${rp(t.amt)}
+      <div style="font-size:27px;font-weight:800;letter-spacing:-.5px;color:${typeCol(t.type)};font-variant-numeric:tabular-nums">
+        ${t.type==='in'?'+':t.type==='out'?'−':''}${rp(t.amt)}
       </div>
       <div style="font-size:13px;color:#8b93a7;margin-top:8px">${esc(t.note || c.n)}</div>
     </div>
     <div style="background:#0d1018;border:1px solid #252b3a;border-radius:15px;padding:4px 14px;margin-bottom:14px">
       ${drow('Kategori', `${c.i} ${c.n}`)}
-      ${drow('Jenis', t.type === 'in' ? 'Pemasukan' : 'Pengeluaran')}
+      ${drow('Jenis', t.type === 'in' ? 'Pemasukan' : t.type === 'out' ? 'Pengeluaran' : t.type === 'sav' ? 'Tabungan' : 'Aset')}
       ${drow('Tanggal', dayLabel(t.date) + ' · ' + t.date.split('-').reverse().join('/'))}
     </div>`;
   showSheet('sheetDetail');
+}
+/* warna per jenis transaksi */
+function typeCol(type){
+  return type === 'in' ? '#22d68a' : type === 'out' ? '#ff5c72'
+       : type === 'sav' ? '#4cc9f0' : '#ffb340';
 }
 function drow(k, v){
   return `<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #1b1f2b;font-size:13px">
@@ -557,6 +622,8 @@ function init(){
   document.getElementById('btnDelete').onclick = delTx;
   document.getElementById('segOut').onclick = () => setSeg('out');
   document.getElementById('segIn').onclick  = () => setSeg('in');
+  const sSav = document.getElementById('segSav'); if (sSav) sSav.onclick = () => setSeg('sav');
+  const sAst = document.getElementById('segAst'); if (sAst) sAst.onclick = () => setSeg('ast');
   document.getElementById('backdrop').onclick = closeSheets;
   document.getElementById('btnCloseDetail').onclick = closeSheets;
   document.getElementById('btnEdit').onclick = () => { const id = detailId; closeSheets(); setTimeout(() => openTx({ id, type:(db.tx.find(t=>t.id===id)||{}).type }), 120); };

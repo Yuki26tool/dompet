@@ -120,6 +120,21 @@ input,select{font-family:inherit}
 .dot.g{background:var(--green);box-shadow:0 0 8px var(--green)}
 .dot.r{background:var(--red);box-shadow:0 0 8px var(--red)}
 .v.g{color:var(--green)} .v.r{color:var(--red)}
+.v.b{color:#4cc9f0} .v.a{color:var(--amber)}
+.dot.b{background:#4cc9f0;box-shadow:0 0 8px #4cc9f0}
+.dot.a{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.amt.b{color:#4cc9f0} .amt.a{color:var(--amber)}
+.flow-sav .cell{background:rgba(255,255,255,.03)}
+.flow .vs{font-size:10px;color:var(--muted);margin-top:3px}
+.networth{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:10px;padding:9px 12px;border-radius:12px;
+  background:linear-gradient(100deg,rgba(124,108,255,.14),rgba(34,214,138,.1));
+  border:1px solid rgba(124,108,255,.22);
+}
+.networth span{font-size:10.5px;font-weight:650;letter-spacing:.5px;text-transform:uppercase;color:#b6bcd0}
+.networth b{font-size:14px;font-weight:750;font-variant-numeric:tabular-nums;color:#eef1f7}
+.networth b.neg{color:#ff8394}
 /* ── banner data contoh ── */
 .banner{
   display:flex;align-items:center;gap:11px;margin:14px 0 0;padding:11px 12px;

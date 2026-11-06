@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=33">
+<link rel="stylesheet" href="style.css?v=36">
 </head>
 <body>
 
@@ -51,6 +51,25 @@
           <div class="v r" id="hOut">Rp 0</div>
         </div>
       </div>
+
+      <div class="flow flow-sav">
+        <div class="cell">
+          <div class="k"><i class="dot b"></i>Tabungan</div>
+          <div class="v b" id="hSav">Rp 0</div>
+          <div class="vs" id="hSavSub">tidak termasuk arus kas</div>
+        </div>
+        <div class="cell">
+          <div class="k"><i class="dot a"></i>Aset</div>
+          <div class="v a" id="hAst">Rp 0</div>
+          <div class="vs" id="hAstSub">tidak termasuk arus kas</div>
+        </div>
+      </div>
+
+      <div class="networth">
+        <span>Total kekayaan</span>
+        <b id="hNet">Rp 0</b>
+      </div>
+
       <div class="flow-note" id="hFlowNote">—</div>
     </div>
 
@@ -107,6 +126,13 @@
       <div class="lbl">Rata-rata harian</div>
       <div class="bal" id="sAvg" style="font-size:26px">Rp 0</div>
       <div class="sub" id="sNote">—</div>
+    </div>
+
+    <div class="networth" style="margin-bottom:18px">
+      <span>Tabungan bulan ini</span><b id="sSav">Rp 0</b>
+    </div>
+    <div class="networth" style="margin-bottom:18px">
+      <span>Aset bulan ini</span><b id="sAst">Rp 0</b>
     </div>
 
     <div class="sec-title"><h2>Pengeluaran per kategori</h2></div>
@@ -180,9 +206,11 @@
 <div class="sheet" id="sheetTx">
   <div class="grab"></div>
   <h3 id="txTitle">Catat transaksi</h3>
-  <div class="seg">
-    <button data-t="out" id="segOut">Pengeluaran</button>
-    <button data-t="in" id="segIn">Pemasukan</button>
+  <div class="seg seg-4">
+    <button data-t="out" id="segOut">Keluar</button>
+    <button data-t="in" id="segIn">Masuk</button>
+    <button data-t="sav" id="segSav">Tabungan</button>
+    <button data-t="ast" id="segAst">Aset</button>
   </div>
 
   <div class="field">
@@ -238,7 +266,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="sync.js?v=33"></script>
-<script src="app.js?v=33"></script>
+<script src="sync.js?v=36"></script>
+<script src="app.js?v=36"></script>
 </body>
 </html>
