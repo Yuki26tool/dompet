@@ -251,11 +251,29 @@ input,select{font-family:inherit}
 .sheet h3{margin:0 0 16px;font-size:17px;font-weight:750}
 /* segmented */
 .seg{display:flex;gap:6px;background:#0d1018;border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:16px}
+/* Warna aktif pakai ::before, bukan background+box-shadow di tombol.
+   Di WebView ini background ber-transition memicu frame basi (warna
+   nempel di tombol yang salah). ::before + opacity aman. */
 .seg button{
-  flex:1;padding:10px;border-radius:11px;font-size:12.5px;font-weight:700;color:var(--muted);transition:.18s;
+  position:relative;flex:1;padding:10px;border-radius:11px;
+  font-size:12.5px;font-weight:700;color:var(--muted);
+  background:transparent;box-shadow:none;transition:color .18s;
 }
-.seg button.on[data-t="in"]{background:rgba(34,214,138,.16);color:var(--green);box-shadow:inset 0 0 0 1px rgba(34,214,138,.4)}
-.seg button.on[data-t="out"]{background:rgba(255,92,114,.15);color:var(--red);box-shadow:inset 0 0 0 1px rgba(255,92,114,.4)}
+.seg button::before{
+  content:'';position:absolute;inset:0;border-radius:11px;
+  background:transparent;box-shadow:none;opacity:0;transition:opacity .18s;
+  pointer-events:none;
+}
+.seg button.on[data-t="in"]{color:var(--green)!important}
+.seg button.on[data-t="in"]::before{background:rgba(34,214,138,.16);box-shadow:inset 0 0 0 1px rgba(34,214,138,.4);opacity:1}
+.seg button.on[data-t="out"]{color:var(--red)!important}
+.seg button.on[data-t="out"]::before{background:rgba(255,92,114,.15);box-shadow:inset 0 0 0 1px rgba(255,92,114,.4);opacity:1}
+.seg button.on[data-t="sav"]{color:#4cc9f0!important}
+.seg button.on[data-t="sav"]::before{background:rgba(76,201,240,.16);box-shadow:inset 0 0 0 1px rgba(76,201,240,.45);opacity:1}
+.seg button.on[data-t="ast"]{color:var(--amber)!important}
+.seg button.on[data-t="ast"]::before{background:rgba(255,179,64,.15);box-shadow:inset 0 0 0 1px rgba(255,179,64,.45);opacity:1}
+.seg button:active{transform:scale(.97)}
+.seg.seg-4 button{font-size:11.5px;padding:10px 4px;letter-spacing:-.1px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;font-weight:650;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .field>input[type=text],.field>input[type=url],.field>input[type=month],.field>textarea,.field>select{-webkit-appearance:none;appearance:none;

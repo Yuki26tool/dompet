@@ -409,9 +409,14 @@ function openTx(preset){
 
 function setSeg(type){
   form.type = type;
-  ['segOut','segIn','segSav','segAst'].forEach(id => {
+  /* jangan baca el.dataset.t — di WebView ini nilainya bisa basi.
+     pakai peta eksplisit: id -> tipe. */
+  const SEGMAP = { segOut:'out', segIn:'in', segSav:'sav', segAst:'ast' };
+  Object.keys(SEGMAP).forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.classList.toggle('on', el.dataset.t === type);
+    if (!el) return;
+    el.setAttribute('data-t', SEGMAP[id]);
+    el.classList.toggle('on', SEGMAP[id] === type);
   });
   const ph = { in:'misal: gaji november', out:'misal: nasi padang',
                sav:'misal: nabung bulanan', ast:'misal: beli laptop' };
