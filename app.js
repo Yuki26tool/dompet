@@ -26,16 +26,16 @@ const INC = [
 const SAV = [
   { id:'darurat',  n:'Darurat',  i:'🛟', c:'#4cc9f0' },
   { id:'tabungan', n:'Tabungan', i:'🏦', c:'#22d68a' },
-  { id:'emas',     n:'Emas',     i:'🪙', c:'#ffc64d' },
   { id:'reksa',    n:'Reksa',    i:'📈', c:'#a78bfa' },
 ];
 const AST = [
   { id:'motor',    n:'Motor',    i:'🛵', c:'#ff8a4c' },
   { id:'elektronik',n:'Elektronik',i:'💻',c:'#60a5fa' },
   { id:'tanah',    n:'Tanah',    i:'🏞️', c:'#34d399' },
+  { id:'emas',     n:'Emas',     i:'🪙', c:'#ffc64d' },
   { id:'lain',     n:'Lainnya',  i:'✨', c:'#8b93a7' },
 ];
-const ALL = [...EXP, ...INC];
+const ALL = [...EXP, ...INC, ...SAV, ...AST];
 const poolOf = (type) => type === 'in' ? INC : type === 'sav' ? SAV : type === 'ast' ? AST : EXP;
 const catOf = (id, type) => poolOf(type).find(c => c.id === id)
   || ALL.find(c => c.id === id) || { n:'Lainnya', i:'✨', c:'#8b93a7' };
@@ -52,12 +52,27 @@ let showAll = false;
 function load(){
   try {
     const raw = localStorage.getItem(LS);
-    if (raw) { const d = JSON.parse(raw); if (Array.isArray(d.tx)) return d; }
+    if (raw) { const d = JSON.parse(raw); if (Array.isArray(d.tx)) return migrate(d); }
   } catch(e){}
   const s = seed();
   s.demo = true;
+  s.schema = 2;
   try { localStorage.setItem(LS, JSON.stringify(s)); } catch(e){}
   return s;
+}
+/* v2 (Nov 2026): kategori Emas pindah dari Tabungan ke Aset.
+   Record lama yang mencatat emas sebagai tabungan ikut dipindah, sekali saja,
+   supaya total Tabungan/Aset tidak beda dengan yang lo lihat di menu. */
+function migrate(d){
+  if (d.schema >= 2) return d;
+  let n = 0;
+  (d.tx || []).forEach(t => {
+    if (!t.deleted && t.type === 'sav' && t.cat === 'emas') { t.type = 'ast'; t.updated = Date.now(); n++; }
+  });
+  d.schema = 2;
+  try { localStorage.setItem(LS, JSON.stringify(d)); } catch(e){}
+  if (n) setTimeout(() => toast(n + ' catatan emas dipindah ke Aset'), 900);
+  return d;
 }
 function save(){
   try { localStorage.setItem(LS, JSON.stringify(db)); } catch(e){ toast('Gagal menyimpan'); }
