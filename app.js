@@ -251,8 +251,15 @@ function renderHome(){
   }
   document.getElementById('hSub').textContent = sub;
 
+  // Populate filter select
+  const filterSel = document.getElementById('filterCat');
+  const cats = [...new Set(list.map(t => t.cat).filter(Boolean))].sort();
+  const curVal = filterSel.value;
+  filterSel.innerHTML = '<option value="">Semua kategori</option>' + cats.map(c => `<option value="${c}">${catOf(c, 'out').n || catOf(c, 'sav').n || catOf(c, 'ast').n || catOf(c, 'dbt').n || c}</option>`).join('');
+  if (cats.includes(curVal)) filterSel.value = curVal;
+  
   renderDonut(list, tout);
-  renderList(list, 'homeList', showAll ? null : 12);
+  renderList(list, 'homeList', showAll ? null : 12, filterSel.value);
   document.getElementById('demoBanner').classList.toggle('hidden', !db.demo);
   document.getElementById('btnSeeAll').textContent =
     list.length > 12 && !showAll ? `Lihat semua (${list.length})` : 'Statistik ›';
@@ -310,7 +317,7 @@ function renderDonut(list, tout){
   }
 }
 
-function renderList(list, mountId, limit){
+function renderList(list, mountId, limit, filterCat){
   const mount = document.getElementById(mountId);
   if (!list.length){
     mount.innerHTML = '<div class="empty" style="padding:30px 0">Belum ada catatan.<br>Tekan tombol + buat mulai.</div>';
@@ -329,6 +336,7 @@ function renderList(list, mountId, limit){
     html += `<div class="dayhead"><span>${dayLabel(date)}</span>
       <span class="net" style="color:${net>=0?'#22d68a':'#ff8b9b'}">${net>=0?'+':'−'}${rp(Math.abs(net),true).replace('Rp ','')}</span></div><div class="list">`;
     items.forEach(t => {
+      if (filterCat && t.cat !== filterCat) return;
       const c = catOf(t.cat, t.type);
       const sign = t.type === 'in' ? '+' : t.type === 'out' ? '−' : '';
       const cls = t.type === 'in' ? 'g' : t.type === 'out' ? 'r' : 'b';
@@ -514,6 +522,7 @@ function openDetail(id){
   const t = db.tx.find(x => x.id === id); if (!t) return;
   detailId = id;
   const c = catOf(t.cat, t.type);
+  const isDbt = t.type === 'dbt';
   document.getElementById('detailBody').innerHTML = `
     <div style="text-align:center;padding:6px 0 20px">
       <div class="av" style="width:64px;height:64px;flex:none;margin:0 auto 14px;font-size:30px;border-radius:20px">${c.i}</div>
@@ -526,8 +535,21 @@ function openDetail(id){
       ${drow('Kategori', `${c.i} ${c.n}`)}
       ${drow('Jenis', t.type === 'in' ? 'Pemasukan' : t.type === 'out' ? 'Pengeluaran' : t.type === 'sav' ? 'Tabungan' : t.type === 'ast' ? 'Aset' : 'Pinjaman')}
       ${drow('Tanggal', dayLabel(t.date) + ' · ' + t.date.split('-').reverse().join('/'))}
-    </div>`;
+    </div>
+    ${isDbt ? '<button id="btnLunas" class="btn" style="width:100%;margin-top:10px;background:#ff9f1c;color:#0d1018">Lunas</button>' : ''}`;
   showSheet('sheetDetail');
+  if (isDbt) {
+    document.getElementById('btnLunas').onclick = () => lunasPinjaman(id);
+  }
+}
+
+function lunasPinjaman(id){
+  const t = db.tx.find(x => x.id === id); if (!t) return;
+  // Update existing record to type out with cat tagihan
+  t.type = 'out';
+  t.cat = 'tagihan';
+  t.updated = Date.now();
+  save(); closeSheets(); renderAll(); toast('Pinjaman dilunasi, dipindah ke Keluar > Tagihan');
 }
 /* warna per jenis transaksi */
 function typeCol(type){
@@ -694,6 +716,8 @@ function init(){
     if (n > 12 && !showAll){ showAll = true; renderAll(); return; }
     switchView('stats');
   };
+
+  document.getElementById('filterCat').onchange = () => renderAll();
 
   document.querySelectorAll('.nav button[data-view]').forEach(b =>
     b.onclick = () => switchView(b.dataset.view));

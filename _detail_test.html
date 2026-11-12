@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Dompet — Catatan Keuangan</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css?v=44">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo"><img src="logo-mark.png" alt="Dompet" width="40" height="40"></div>
+      <div>
+        <h1>Dompet</h1>
+        <small id="greet">Catatan keuangan lo</small>
+      </div>
+    </div>
+    <button class="icon-btn" id="btnSync" title="Sinkronisasi">
+      <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-7.5-4"/><path d="M3 12a9 9 0 019-9 9 9 0 017.5 4"/><path d="M3 21v-5h5"/><path d="M21 3v5h-5"/></svg>
+      <i class="sync-dot" id="syncDot"></i>
+    </button>
+    <button class="icon-btn" id="btnExport" title="Backup">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+    </button>
+  </header>
+
+  <!-- ═══ BERANDA ═══ -->
+  <section class="view on" id="v-home">
+    <div class="hero">
+      <button class="hero-edit" id="btnSaldoAwal">Saldo awal</button>
+      <div class="lbl" id="hBalLbl">Duit Lo Sekarang</div>
+      <div class="bal" id="hBal">Rp 0</div>
+      <div class="sub" id="hSub">—</div>
+      <div class="flow">
+        <div class="cell">
+          <div class="k"><i class="dot g"></i>Masuk</div>
+          <div class="v g" id="hIn">Rp 0</div>
+        </div>
+        <div class="cell">
+          <div class="k"><i class="dot r"></i>Keluar</div>
+          <div class="v r" id="hOut">Rp 0</div>
+        </div>
+      </div>
+
+      <div class="flow-note" id="hFlowNote">—</div>
+
+      <div class="flow flow-sav">
+        <div class="cell">
+          <div class="k"><i class="dot b"></i>Tabungan</div>
+          <div class="v b" id="hSav">Rp 0</div>
+          <div class="vs" id="hSavSub">tidak termasuk arus kas</div>
+        </div>
+        <div class="cell">
+          <div class="k"><i class="dot a"></i>Aset</div>
+          <div class="v a" id="hAst">Rp 0</div>
+          <div class="vs" id="hAstSub">tidak termasuk arus kas</div>
+        </div>
+      </div>
+
+      <div class="flow flow-sav">
+        <div class="cell">
+          <div class="k"><i class="dot" style="background:#ff9f1c;box-shadow:0 0 8px #ff9f1c"></i>Pinjaman</div>
+          <div class="v" id="hDbt" style="color:#ff9f1c">Rp 0</div>
+          <div class="vs" id="hDbtSub">tidak termasuk arus kas</div>
+        </div>
+      </div>
+
+      <div class="networth">
+        <span>Total kekayaan</span>
+        <b id="hNet">Rp 0</b>
+      </div>
+
+      <div class="debt-row">
+        <span>Hutang / Pinjaman Lo</span>
+        <b id="hDebt">Rp 0</b>
+      </div>
+    </div>
+
+    <div class="banner" id="demoBanner">
+      <div class="bico">🧪</div>
+      <div class="btxt">
+        <b>Ini data contoh</b>
+        <small>Biar lo lihat bentuknya. Hapus kalau mau mulai dari nol.</small>
+      </div>
+      <button id="btnClearDemo">Hapus</button>
+    </div>
+
+    <div class="monthbar">
+      <div class="m" id="hMonth">—</div>
+      <div class="sp"></div>
+      <button class="chip" id="chipPrev">‹ Sebelumnya</button>
+      <button class="chip" id="chipNow">Bulan ini</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h">
+        <h2>Ke mana duitnya</h2>
+        <span id="donutTotal">—</span>
+      </div>
+      <div class="donut-wrap" id="donutWrap">
+        <div class="donut">
+          <svg width="118" height="118" viewBox="0 0 118 118">
+            <circle cx="59" cy="59" r="46" fill="none" stroke="#0d1018" stroke-width="15"/>
+            <g id="donutArcs"></g>
+          </svg>
+          <div class="mid"><div><b id="donutVal">—</b><small>terserap</small></div></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+
+    <div class="sec-title">
+      <h2>Transaksi</h2>
+      <button id="btnSeeAll">Lihat semua</button>
+    </div>
+    <div class="filter-row">
+      <select id="filterCat" class="filter-select">
+        <option value="">Semua kategori</option>
+      </select>
+    </div>
+    <div id="homeList"></div>
+  </section>
+
+  <!-- ═══ STATISTIK ═══ -->
+  <section class="view" id="v-stats">
+    <div class="monthbar" style="margin-top:4px">
+      <div class="m" id="sMonth">—</div>
+      <div class="sp"></div>
+      <button class="chip" id="sPrev">‹</button>
+      <button class="chip" id="sNext">›</button>
+    </div>
+
+    <div class="hero" style="padding:16px">
+      <div class="lbl">Rata-rata harian</div>
+      <div class="bal" id="sAvg" style="font-size:26px">Rp 0</div>
+      <div class="sub" id="sNote">—</div>
+    </div>
+
+    <div class="networth" style="margin-bottom:18px">
+      <span>Tabungan bulan ini</span><b id="sSav">Rp 0</b>
+    </div>
+    <div class="networth" style="margin-bottom:18px">
+      <span>Aset bulan ini</span><b id="sAst">Rp 0</b>
+    </div>
+    <div class="networth" style="margin-bottom:18px">
+      <span>Pinjaman bulan ini</span><b id="sDbt" style="color:#ff9f1c">Rp 0</b>
+    </div>
+
+    <div class="sec-title"><h2>Pengeluaran per kategori</h2></div>
+    <div class="panel"><div class="bars" id="sBars"></div></div>
+
+    <div class="sec-title"><h2>Bulan-bulan terakhir</h2></div>
+    <div class="monthlist" id="sMonths"></div>
+  </section>
+
+<script>setTimeout(function(){ try{openDetail("test");}catch(e){} },500);</script>
+</body>
+</div>
+
+<!-- saldo awal -->
+<div class="sheet" id="sheetSaldo">
+  <div class="grab"></div>
+  <h3>Saldo awal</h3>
+  <p class="hint">Duit yang lo punya <b>sebelum</b> mulai nyatet di aplikasi ini. Saldo ini jadi titik start, lalu ditambah pemasukan dan dikurangi pengeluaran tiap bulan.</p>
+
+  <div class="field">
+    <label>Jumlah</label>
+    <div class="amount-box">
+      <span>Rp</span>
+      <input id="fSaldo" type="text" inputmode="numeric" placeholder="0" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Berlaku sejak</label>
+    <input id="fSaldoMonth" type="month">
+  </div>
+
+  <button class="btn-primary" id="btnSaveSaldo">Simpan saldo awal</button>
+  <button class="btn-ghost" id="btnCloseSaldo">Batal</button>
+</div>
+
+<!-- ═══ SHEET: SYNC ═══ -->
+<div class="sheet" id="sheetSync">
+  <div class="grab"></div>
+  <h2>Sync antar device</h2>
+  <p class="hint">
+    Satu HP ketuk <b>Buat ruang baru</b>, lalu bagikan <b>kode + kunci ruang</b>
+    ke HP lain lewat jalur aman (jangan diumbar). Tiap HP isi kode &amp; kunci
+    yang sama — data gabung otomatis.
+  </p>
+
+  <div class="field">
+    <label>Kode ruang</label>
+    <input id="fRoom" type="text" placeholder="dibuat otomatis" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="field">
+    <label>Kunci ruang</label>
+    <input id="fKey" type="text" placeholder="dibuat otomatis" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="field">
+    <label>Alamat server</label>
+    <input id="fServer" type="url" placeholder="https://..." autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="sync-state" id="syncState">Belum tersambung</div>
+
+  <button class="btn-primary" id="btnSyncSave">Simpan &amp; sinkron sekarang</button>
+  <button class="btn-ghost" id="btnRoomNew">Buat ruang baru</button>
+  <button class="btn-ghost" id="btnSyncOff">Matikan sync di device ini</button>
+  <button class="ghost" id="btnCloseSync">Tutup</button>
+</div>
+
+<!-- ═══ SHEET: TRANSAKSI ═══ -->
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheetTx">
+  <div class="grab"></div>
+  <h3 id="txTitle">Catat transaksi</h3>
+  <div class="seg seg-5">
+    <button data-t="out" id="segOut">Keluar</button>
+    <button data-t="in" id="segIn">Masuk</button>
+    <button data-t="sav" id="segSav">Tabungan</button>
+    <button data-t="ast" id="segAst">Aset</button>
+    <button data-t="dbt" id="segDbt">Pinjaman</button>
+  </div>
+
+  <div class="field">
+    <label>Jumlah</label>
+    <div class="amount-box">
+      <span>Rp</span>
+      <input id="fAmount" type="text" inputmode="numeric" placeholder="0" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Kategori</label>
+    <div class="cats" id="catGrid"></div>
+  </div>
+
+  <div class="field">
+    <label>Catatan</label>
+    <input id="fNote" type="text" placeholder="misal: nasi padang" autocomplete="off" maxlength="60">
+  </div>
+  <div class="field">
+    <label>Tanggal</label>
+    <input id="fDate" type="date">
+  </div>
+
+  <button class="btn-primary" id="btnSave">Simpan</button>
+  <button class="btn-ghost hidden" id="btnDelete">Hapus transaksi ini</button>
+</div>
+
+<!-- txn detail -->
+<div class="sheet" id="sheetDetail">
+  <div class="grab"></div>
+  <h3>Detail transaksi</h3>
+  <div id="detailBody"></div>
+  <button class="btn-primary" id="btnEdit">Ubah</button>
+  <button class="btn-ghost" id="btnCloseDetail">Tutup</button>
+</div>
+
+<nav class="nav">
+  <div class="nav-in">
+    <button class="on" data-view="home">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V9.8"/></svg>
+      Beranda
+    </button>
+    <button class="fab" id="btnAdd" aria-label="Tambah">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button data-view="stats">
+      <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Statistik
+    </button>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){ try{ localStorage.setItem("dompet.v1", JSON.stringify({"tx": [{"id": "7uecu9ewnrfw", "type": "in", "amt": 800000, "cat": "gaji", "note": "Sisa Gaji November", "date": "2026-11-02", "updated": 1793641200044}, {"id": "n7jbv3oufgkb", "type": "out", "amt": 21000, "cat": "belanja", "note": "Galon", "date": "2026-11-04", "updated": 1793755026587}, {"id": "swq5vo6gj49p", "type": "in", "amt": 45000, "cat": "bonus", "note": "Untung pesanan shopee bu Izah", "date": "2026-11-02", "updated": 1793755197277}, {"id": "2vbybwy8kn3b", "type": "out", "amt": 51000, "cat": "belanja", "note": "Alfamart minyak goreng & sabun cuci piring", "date": "2026-11-02", "updated": 1793755268327}, {"id": "cz8b78a3mxdc", "type": "out", "amt": 6000, "cat": "belanja", "note": "Pak Ginen", "date": "2026-11-03", "updated": 1793755374960}, {"id": "c1o3gank195m", "type": "out", "amt": 110000, "cat": "belanja", "note": "Enggal", "date": "2026-11-03", "updated": 1793755412303}, {"id": "ivwgq12nb49e", "type": "out", "amt": 10000, "cat": "kesehatan", "note": "Plossa shopee", "date": "2026-11-04", "updated": 1793759862866}, {"id": "v9xa4d9r3ym3", "type": "out", "amt": 23000, "cat": "belanja", "note": "Pak Ginen", "date": "2026-11-04", "updated": 1793767927035}, {"id": "brjsr9k74oba", "type": "out", "amt": 10000, "cat": "pulsa", "note": "XL bunda", "date": "2026-11-04", "updated": 1793767960342}, {"id": "hb0u46l5ftm3", "type": "out", "amt": 42000, "cat": "belanja", "note": "Beras + uht pantes", "date": "2026-11-04", "updated": 1793800393131}, {"id": "2f2o7ilbqbk4", "type": "out", "amt": 150000, "cat": "tagihan", "note": "Paylater Dika", "date": "2026-11-05", "updated": 1793844552964}, {"id": "vyrrmwmd9fmx", "type": "out", "amt": 5000, "cat": "belanja", "note": "Legging Gealsy", "date": "2026-11-05", "updated": 1793845444713}, {"id": "jwzk52ijpo89", "type": "out", "amt": 40000, "cat": "belanja", "note": "Sendok mertua, armor, sunscreen", "date": "2026-11-05", "updated": 1793849998771}, {"id": "hj6uyqw7n2jr", "type": "out", "amt": 10000, "cat": "makan", "note": "Bakso bakar", "date": "2026-11-05", "updated": 1793879673255}, {"id": "rxh56aq0nsc1", "type": "in", "amt": 100000, "cat": "gaji", "note": "Bunda", "date": "2026-11-05", "updated": 1793879706673}, {"id": "rnru5ybyhuh8", "type": "in", "amt": 200000, "cat": "gaji", "note": "Bunda", "date": "2026-11-02", "updated": 1793879771739}, {"id": "fgoeiywepvu6", "type": "out", "amt": 6000, "cat": "belanja", "note": "Pak Ginen", "date": "2026-11-05", "updated": 1793879828176}, {"id": "uwwv1woblhct", "type": "out", "amt": 10000, "cat": "belanja", "note": "Pak Heru", "date": "2026-11-06", "updated": 1793961900317}, {"id": "ncb32syumxo1", "type": "out", "amt": 13000, "cat": "belanja", "note": "Tisu & jajan Enggal", "date": "2026-11-06", "updated": 1793961968113}, {"id": "p2ks4oormf9v", "type": "sav", "amt": 2550000, "cat": "tabungan", "note": "Duit Tab Buku", "date": "2026-11-02", "updated": 1793965893339}, {"id": "kuzcybl9lt3d", "type": "sav", "amt": 687000, "cat": "darurat", "note": "Duit Baru Pecahan 1-2-5-10K", "date": "2026-11-02", "updated": 1793965954372}, {"id": "gdjno94cl3vh", "type": "sav", "amt": 3500000, "cat": "darurat", "note": "Duit Baru Pecahan 20-50-100k", "date": "2026-11-02", "updated": 1793965967975}, {"id": "h9f3hp5z2azc", "type": "out", "amt": 50000, "cat": "tagihan", "note": "Token", "date": "2026-11-06", "updated": 1793966044441}, {"id": "xidq2ysa0omq", "type": "out", "amt": 15000, "cat": "pulsa", "note": "Paket byu", "date": "2026-11-07", "updated": 1794011318450}, {"id": "7jw8lxul15v4", "type": "out", "amt": 16500, "cat": "belanja", "note": "bacem + jajan pantes", "date": "2026-11-07", "updated": 1794011340784}, {"id": "o454sesfpzrd", "type": "out", "amt": 20000, "cat": "transport", "note": "bensin Supra Kuning", "date": "2026-11-07", "updated": 1794027615817}, {"id": "nejijxmj0j2d", "type": "ast", "amt": 592000, "cat": "emas", "note": "Anting Gealsy 17k 0,8gr 19/12/2022", "date": "2026-11-07", "updated": 1794031136732}, {"id": "k4x7zpm2sklc", "type": "ast", "amt": 1129000, "cat": "emas", "note": "GELANG RISKA 8k 1,05gr 19/06/2026", "date": "2026-11-07", "updated": 1794031143891}, {"id": "hlplmw7wxbm7", "type": "ast", "amt": 3060000, "cat": "emas", "note": "Gelang Gealsy 8k 2,55gr 16/03/2026", "date": "2026-11-07", "updated": 1794031147821}, {"id": "ah7t6h88u5i5", "type": "ast", "amt": 3097500, "cat": "emas", "note": "Cincin Riska 10k 3.5gr 06/04/2025", "date": "2026-11-07", "updated": 1794031153599}, {"id": "8x0el20byz7l", "type": "ast", "amt": 423500, "cat": "emas", "note": "Cincin Gealsy 8k 0,7gr 22/10/2024", "date": "2026-11-07", "updated": 1794031156815}, {"id": "ez3n2gdh0lb7", "type": "out", "amt": 20000, "cat": "transport", "note": "Bensin", "date": "2026-11-07", "updated": 1794031918779}], "opening": {"amount": 0, "month": "2026-10", "updated": 1793641630760}, "schema": 2, "demo": false})); }catch(e){} })();
+</script>
+<script src="sync.js?v=44"></script>
+<script src="app.js?v=44"></script>
+<script>setTimeout(function(){ try{openDetail("test");}catch(e){} },500);</script>
+</body>
+</html>
