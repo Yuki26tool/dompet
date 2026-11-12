@@ -263,6 +263,14 @@ function renderHome(){
     {id:'dbt', label:'Pinjaman', color:'#ff9f1c'}
   ];
   chipWrap.innerHTML = types.map(t => `<button class="chip${typeFilter === t.id ? ' on' : ''}" data-type="${t.id}" style="--c:${t.color}">${t.label}</button>`).join('');
+  // Pasang handler ULANG setelah innerHTML ditulis
+  chipWrap.querySelectorAll('.chip').forEach(btn => {
+    btn.onclick = () => {
+      typeFilter = btn.dataset.type || '';
+      chipWrap.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === btn));
+      renderAll();
+    };
+  });
 
   // Populate filter select
   const filterSel = document.getElementById('filterCat');
