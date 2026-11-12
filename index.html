@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=44">
+<link rel="stylesheet" href="style.css?v=47">
 </head>
 <body>
 
@@ -122,6 +122,13 @@
     <div class="sec-title">
       <h2>Transaksi</h2>
       <button id="btnSeeAll">Lihat semua</button>
+    </div>
+    <div class="chip-row" id="typeChips">
+      <button class="chip" data-type="in"><span>Masuk</span></button>
+      <button class="chip" data-type="out"><span>Keluar</span></button>
+      <button class="chip" data-type="sav"><span>Tabungan</span></button>
+      <button class="chip" data-type="ast"><span>Aset</span></button>
+      <button class="chip" data-type="dbt"><span>Pinjaman</span></button>
     </div>
     <div class="filter-row">
       <select id="filterCat" class="filter-select">
@@ -288,7 +295,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="sync.js?v=44"></script>
-<script src="app.js?v=44"></script>
+<script src="sync.js?v=47"></script>
+<script src="app.js?v=47"></script>
 </body>
 </html>

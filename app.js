@@ -54,6 +54,7 @@ let cursor = monthKey(new Date());        // "2026-11"
 let form = { type:'out', cat:'makan', id:null };
 let detailId = null;
 let showAll = false;
+let typeFilter = '';
 
 function load(){
   try {
@@ -251,6 +252,18 @@ function renderHome(){
   }
   document.getElementById('hSub').textContent = sub;
 
+  // Populate type chips
+  const chipWrap = document.getElementById('typeChips');
+  const types = [
+    {id:'', label:'Semua'},
+    {id:'out', label:'Keluar', color:'#ff5c72'},
+    {id:'in', label:'Masuk', color:'#22d68a'},
+    {id:'sav', label:'Tabungan', color:'#4cc9f0'},
+    {id:'ast', label:'Aset', color:'#ffb340'},
+    {id:'dbt', label:'Pinjaman', color:'#ff9f1c'}
+  ];
+  chipWrap.innerHTML = types.map(t => `<button class="chip${typeFilter === t.id ? ' on' : ''}" data-type="${t.id}" style="--c:${t.color}">${t.label}</button>`).join('');
+
   // Populate filter select
   const filterSel = document.getElementById('filterCat');
   const cats = [...new Set(list.map(t => t.cat).filter(Boolean))].sort();
@@ -259,7 +272,7 @@ function renderHome(){
   if (cats.includes(curVal)) filterSel.value = curVal;
   
   renderDonut(list, tout);
-  renderList(list, 'homeList', showAll ? null : 12, filterSel.value);
+  renderList(list, 'homeList', showAll ? null : 12, filterSel.value, typeFilter);
   document.getElementById('demoBanner').classList.toggle('hidden', !db.demo);
   document.getElementById('btnSeeAll').textContent =
     list.length > 12 && !showAll ? `Lihat semua (${list.length})` : 'Statistik ›';
@@ -337,6 +350,7 @@ function renderList(list, mountId, limit, filterCat){
       <span class="net" style="color:${net>=0?'#22d68a':'#ff8b9b'}">${net>=0?'+':'−'}${rp(Math.abs(net),true).replace('Rp ','')}</span></div><div class="list">`;
     items.forEach(t => {
       if (filterCat && t.cat !== filterCat) return;
+      if (typeFilter && t.type !== typeFilter) return;
       const c = catOf(t.cat, t.type);
       const sign = t.type === 'in' ? '+' : t.type === 'out' ? '−' : '';
       const cls = t.type === 'in' ? 'g' : t.type === 'out' ? 'r' : 'b';
@@ -536,7 +550,7 @@ function openDetail(id){
       ${drow('Jenis', t.type === 'in' ? 'Pemasukan' : t.type === 'out' ? 'Pengeluaran' : t.type === 'sav' ? 'Tabungan' : t.type === 'ast' ? 'Aset' : 'Pinjaman')}
       ${drow('Tanggal', dayLabel(t.date) + ' · ' + t.date.split('-').reverse().join('/'))}
     </div>
-    ${isDbt ? '<button id="btnLunas" class="btn" style="width:100%;margin-top:10px;background:#ff9f1c;color:#0d1018">Lunas</button>' : ''}`;
+    ${isDbt ? '<button id="btnLunas" class="btn-primary" style="width:100%;margin-top:12px;background:linear-gradient(135deg,#ff9f1c,#ff7a1c);color:#14171f;box-shadow:0 6px 20px rgba(255,159,28,.28)">✓ Tandai Lunas</button>' : ''}`;
   showSheet('sheetDetail');
   if (isDbt) {
     document.getElementById('btnLunas').onclick = () => lunasPinjaman(id);
@@ -718,6 +732,12 @@ function init(){
   };
 
   document.getElementById('filterCat').onchange = () => renderAll();
+
+  document.querySelectorAll('#typeChips .chip').forEach(c => c.onclick = () => {
+    typeFilter = c.dataset.type || '';
+    document.querySelectorAll('#typeChips .chip').forEach(x => x.classList.toggle('on', x === c));
+    renderAll();
+  });
 
   document.querySelectorAll('.nav button[data-view]').forEach(b =>
     b.onclick = () => switchView(b.dataset.view));
