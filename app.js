@@ -35,8 +35,14 @@ const AST = [
   { id:'emas',     n:'Emas',     i:'🪙', c:'#ffc64d' },
   { id:'lain',     n:'Lainnya',  i:'✨', c:'#8b93a7' },
 ];
-const ALL = [...EXP, ...INC, ...SAV, ...AST];
-const poolOf = (type) => type === 'in' ? INC : type === 'sav' ? SAV : type === 'ast' ? AST : EXP;
+const DBT = [
+  { id:'spay',     n:'Shopee PayLater', i:'🛍️', c:'#ee4d2d' },
+  { id:'gpay',     n:'GoPay Later',       i:'🛵', c:'#00aa55' },
+  { id:'paylater', n:'Pay Later Lain',    i:'💳', c:'#ff6b35' },
+  { id:'pinjam',   n:'Pinjam Duit',       i:'🤝', c:'#ff9f1c' },
+];
+const ALL = [...EXP, ...INC, ...SAV, ...AST, ...DBT];
+const poolOf = (type) => type === 'in' ? INC : type === 'sav' ? SAV : type === 'ast' ? AST : type === 'dbt' ? DBT : EXP;
 const catOf = (id, type) => poolOf(type).find(c => c.id === id)
   || ALL.find(c => c.id === id) || { n:'Lainnya', i:'✨', c:'#8b93a7' };
 
@@ -182,8 +188,10 @@ function renderHome(){
   const closing = opening + tin - tout;
   const savTot = saveTotalAt(cursor, 'sav');
   const astTot = saveTotalAt(cursor, 'ast');
+  const dbtTot = saveTotalAt(cursor, 'dbt');
   const savMonth = list.filter(t => t.type === 'sav').reduce((a,t) => a + t.amt, 0);
   const astMonth = list.filter(t => t.type === 'ast').reduce((a,t) => a + t.amt, 0);
+  const dbtMonth = list.filter(t => t.type === 'dbt').reduce((a,t) => a + t.amt, 0);
 
   const balEl = document.getElementById('hBal');
   balEl.textContent = (closing < 0 ? '−' : '') + rp(Math.abs(closing));
@@ -193,7 +201,7 @@ function renderHome(){
   document.getElementById('hIn').textContent  = rp(tin, true);
   document.getElementById('hOut').textContent = rp(tout, true);
 
-  const sEl = document.getElementById('hSav'), aEl = document.getElementById('hAst');
+  const sEl = document.getElementById('hSav'), aEl = document.getElementById('hAst'), dEl = document.getElementById('hDbt');
   if (sEl) {
     sEl.textContent = rp(savTot, true);
     document.getElementById('hSavSub').textContent =
@@ -204,19 +212,23 @@ function renderHome(){
     document.getElementById('hAstSub').textContent =
       astMonth > 0 ? '+' + rp(astMonth, true).replace('Rp ','') + ' bulan ini' : 'tidak termasuk arus kas';
   }
+  if (dEl) {
+    dEl.textContent = rp(dbtTot, true);
+    document.getElementById('hDbtSub').textContent =
+      dbtMonth > 0 ? '+' + rp(dbtMonth, true).replace('Rp ','') + ' bulan ini' : 'tidak termasuk arus kas';
+  }
   const nwEl = document.getElementById('hNet');
   if (nwEl) {
-    const nw = closing + savTot + astTot;
+    const nw = closing + savTot + astTot - dbtTot;
     nwEl.textContent = (nw < 0 ? '−' : '') + rp(Math.abs(nw), true);
     nwEl.classList.toggle('neg', nw < 0);
   }
 
-  // Hutang = total kekayaan negatif (kalau minus) atau 0
+  // Hutang / Pinjaman Lo
   const debtEl = document.getElementById('hDebt');
   if (debtEl) {
-    const debt = Math.max(0, -(closing + savTot + astTot));
-    debtEl.textContent = rp(debt, true);
-    debtEl.classList.toggle('neg', debt > 0);
+    debtEl.textContent = rp(dbtTot, true);
+    debtEl.classList.toggle('neg', dbtTot > 0);
   }
 
   document.getElementById('hMonth').textContent = monthLabel(cursor);
@@ -345,9 +357,11 @@ function renderStats(){
 
   const savM = list.filter(t => t.type === 'sav').reduce((a,t) => a + t.amt, 0);
   const astM = list.filter(t => t.type === 'ast').reduce((a,t) => a + t.amt, 0);
-  const sSav = document.getElementById('sSav'), sAst = document.getElementById('sAst');
+  const dbtM = list.filter(t => t.type === 'dbt').reduce((a,t) => a + t.amt, 0);
+  const sSav = document.getElementById('sSav'), sAst = document.getElementById('sAst'), sDbt = document.getElementById('sDbt');
   if (sSav) sSav.textContent = rp(savM, true);
   if (sAst) sAst.textContent = rp(astM, true);
+  if (sDbt) sDbt.textContent = rp(dbtM, true);
 
   const days = new Date(+cursor.slice(0,4), +cursor.slice(5,7), 0).getDate();
   const isNow = cursor === monthKey(new Date());
@@ -435,7 +449,7 @@ function setSeg(type){
   form.type = type;
   /* jangan baca el.dataset.t — di WebView ini nilainya bisa basi.
      pakai peta eksplisit: id -> tipe. */
-  const SEGMAP = { segOut:'out', segIn:'in', segSav:'sav', segAst:'ast' };
+  const SEGMAP = { segOut:'out', segIn:'in', segSav:'sav', segAst:'ast', segDbt:'dbt' };
   Object.keys(SEGMAP).forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -510,7 +524,7 @@ function openDetail(id){
     </div>
     <div style="background:#0d1018;border:1px solid #252b3a;border-radius:15px;padding:4px 14px;margin-bottom:14px">
       ${drow('Kategori', `${c.i} ${c.n}`)}
-      ${drow('Jenis', t.type === 'in' ? 'Pemasukan' : t.type === 'out' ? 'Pengeluaran' : t.type === 'sav' ? 'Tabungan' : 'Aset')}
+      ${drow('Jenis', t.type === 'in' ? 'Pemasukan' : t.type === 'out' ? 'Pengeluaran' : t.type === 'sav' ? 'Tabungan' : t.type === 'ast' ? 'Aset' : 'Pinjaman')}
       ${drow('Tanggal', dayLabel(t.date) + ' · ' + t.date.split('-').reverse().join('/'))}
     </div>`;
   showSheet('sheetDetail');
@@ -518,7 +532,7 @@ function openDetail(id){
 /* warna per jenis transaksi */
 function typeCol(type){
   return type === 'in' ? '#22d68a' : type === 'out' ? '#ff5c72'
-       : type === 'sav' ? '#4cc9f0' : '#ffb340';
+       : type === 'sav' ? '#4cc9f0' : type === 'ast' ? '#ffb340' : '#ff9f1c';
 }
 function drow(k, v){
   return `<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #1b1f2b;font-size:13px">
@@ -653,6 +667,7 @@ function init(){
   document.getElementById('segIn').onclick  = () => setSeg('in');
   const sSav = document.getElementById('segSav'); if (sSav) sSav.onclick = () => setSeg('sav');
   const sAst = document.getElementById('segAst'); if (sAst) sAst.onclick = () => setSeg('ast');
+  const sDbt = document.getElementById('segDbt'); if (sDbt) sDbt.onclick = () => setSeg('dbt');
   document.getElementById('backdrop').onclick = closeSheets;
   document.getElementById('btnCloseDetail').onclick = closeSheets;
   document.getElementById('btnEdit').onclick = () => { const id = detailId; closeSheets(); setTimeout(() => openTx({ id, type:(db.tx.find(t=>t.id===id)||{}).type }), 120); };

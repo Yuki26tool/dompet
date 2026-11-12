@@ -281,8 +281,11 @@ input,select{font-family:inherit}
 .seg button.on[data-t="sav"]::before{background:rgba(76,201,240,.16);box-shadow:inset 0 0 0 1px rgba(76,201,240,.45);opacity:1}
 .seg button.on[data-t="ast"]{color:var(--amber)!important}
 .seg button.on[data-t="ast"]::before{background:rgba(255,179,64,.15);box-shadow:inset 0 0 0 1px rgba(255,179,64,.45);opacity:1}
+.seg button.on[data-t="dbt"]{color:#ff9f1c!important}
+.seg button.on[data-t="dbt"]::before{background:rgba(255,159,28,.16);box-shadow:inset 0 0 0 1px rgba(255,159,28,.45);opacity:1}
 .seg button:active{transform:scale(.97)}
 .seg.seg-4 button{font-size:11.5px;padding:10px 4px;letter-spacing:-.1px}
+.seg.seg-5 button{font-size:10.5px;padding:10px 3px;letter-spacing:-.2px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:11px;font-weight:650;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .field>input[type=text],.field>input[type=url],.field>input[type=month],.field>textarea,.field>select{-webkit-appearance:none;appearance:none;
