@@ -135,6 +135,15 @@ input,select{font-family:inherit}
 .networth span{font-size:10.5px;font-weight:650;letter-spacing:.5px;text-transform:uppercase;color:#b6bcd0}
 .networth b{font-size:14px;font-weight:750;font-variant-numeric:tabular-nums;color:#eef1f7}
 .networth b.neg{color:#ff8394}
+
+.debt-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:8px;padding:9px 12px;border-radius:12px;
+  background:rgba(255,92,114,.09);
+  border:1px solid rgba(255,92,114,.22);
+}
+.debt-row span{font-size:10.5px;font-weight:650;letter-spacing:.5px;text-transform:uppercase;color:#b6bcd0}
+.debt-row b{font-size:14px;font-weight:750;font-variant-numeric:tabular-nums;color:#ff8394}
 /* ── banner data contoh ── */
 .banner{
   display:flex;align-items:center;gap:11px;margin:14px 0 0;padding:11px 12px;

@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css?v=40">
+<link rel="stylesheet" href="style.css?v=42">
 </head>
 <body>
 
@@ -38,7 +38,7 @@
   <section class="view on" id="v-home">
     <div class="hero">
       <button class="hero-edit" id="btnSaldoAwal">Saldo awal</button>
-      <div class="lbl" id="hBalLbl">Saldo</div>
+      <div class="lbl" id="hBalLbl">Duit Lo Sekarang</div>
       <div class="bal" id="hBal">Rp 0</div>
       <div class="sub" id="hSub">—</div>
       <div class="flow">
@@ -51,6 +51,8 @@
           <div class="v r" id="hOut">Rp 0</div>
         </div>
       </div>
+
+      <div class="flow-note" id="hFlowNote">—</div>
 
       <div class="flow flow-sav">
         <div class="cell">
@@ -70,7 +72,10 @@
         <b id="hNet">Rp 0</b>
       </div>
 
-      <div class="flow-note" id="hFlowNote">—</div>
+      <div class="debt-row">
+        <span>Hutang / Pinjaman Lo</span>
+        <b id="hDebt">Rp 0</b>
+      </div>
     </div>
 
     <div class="banner" id="demoBanner">
@@ -266,7 +271,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="sync.js?v=40"></script>
-<script src="app.js?v=40"></script>
+<script src="sync.js?v=42"></script>
+<script src="app.js?v=42"></script>
 </body>
 </html>

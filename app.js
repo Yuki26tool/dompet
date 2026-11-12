@@ -188,7 +188,7 @@ function renderHome(){
   const balEl = document.getElementById('hBal');
   balEl.textContent = (closing < 0 ? '−' : '') + rp(Math.abs(closing));
   balEl.classList.toggle('neg', closing < 0);
-  document.getElementById('hBalLbl').textContent = `Saldo akhir ${monthLabel(cursor)}`;
+  document.getElementById('hBalLbl').textContent = 'Duit Lo Sekarang';
 
   document.getElementById('hIn').textContent  = rp(tin, true);
   document.getElementById('hOut').textContent = rp(tout, true);
@@ -210,6 +210,15 @@ function renderHome(){
     nwEl.textContent = (nw < 0 ? '−' : '') + rp(Math.abs(nw), true);
     nwEl.classList.toggle('neg', nw < 0);
   }
+
+  // Hutang = total kekayaan negatif (kalau minus) atau 0
+  const debtEl = document.getElementById('hDebt');
+  if (debtEl) {
+    const debt = Math.max(0, -(closing + savTot + astTot));
+    debtEl.textContent = rp(debt, true);
+    debtEl.classList.toggle('neg', debt > 0);
+  }
+
   document.getElementById('hMonth').textContent = monthLabel(cursor);
 
   document.getElementById('hFlowNote').innerHTML =
