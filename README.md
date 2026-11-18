@@ -97,7 +97,7 @@ Skemanya sengaja dibuat sederhana. Tidak ada merge tiga arah, tidak ada vektor j
 
 - **Cloudflare quick tunnel itu sementara.** URL berganti tiap server di-restart, dan tidak ada jaminan uptime. Untuk URL tetap, pakai named tunnel (butuh akun Cloudflare).
 - **Server jalan di device yang menjalankannya.** Kalau HP-nya mati atau app-nya tidur, sync berhenti sampai dinyalakan lagi.
-- **Kode ruang adalah kuncinya.** Siapa pun yang tahu kode ruang bisa membaca dan menulis data di ruang itu. Pakai kode yang susah ditebak.
+- **Kode + kunci ruang adalah kuncinya.** Siapa pun yang tahu kode ruang dan kunci ruang bisa membaca dan menulis data di ruang itu. Pakai kode yang susah ditebak, dan bagikan kuncinya hanya lewat jalur aman.
 - **Data tetap di perangkat.** Server hanya titik temu, bukan backup. Export JSON secara berkala kalau datanya penting.
 
 ## Lisensi
