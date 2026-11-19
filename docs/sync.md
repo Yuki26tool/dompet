@@ -25,17 +25,22 @@ Saldo awal disimpan sebagai record biasa dengan id tetap `__opening__`.
 ## Protokol
 
 ```
-POST /api/push?room=<room>
+POST /api/room
+  resp: { room: "<kode>", key: "<kunci>" }   # kunci cuma muncul sekali — simpan baik-baik
+
+POST /api/push?room=<room>&key=<key>
   body: { records: [ {id, updated, deleted, body}, ... ] }
   resp: { ok: true, saved: 11, now: 1793623744.16 }
 
-GET /api/pull?room=<room>&since=<timestamp>
+GET /api/pull?room=<room>&key=<key>&since=<timestamp>
   resp: { records: [ {id, updated, ...body}, ... ], now: 1793623744.16 }
 
 GET /api/health
   resp: { ok: true, t: 1793623744 }
-  cross:/GET, POST, OPTIONS — semua dengan Access-Control-Allow-Origin: *
+  CORS: GET, POST, OPTIONS — semua dengan Access-Control-Allow-Origin: *
 ```
+
+Kunci salah atau tidak ada → `403 {error: "bad key"}`. Ruang lama tanpa kunci tetap bisa diakses tanpa kunci.
 
 Siklus satu putaran:
 
@@ -99,11 +104,11 @@ else: upsert
 
 ## Keamanan
 
-**Kode ruang adalah satu-satunya kunci.** Siapa pun yang tahu kode ruang bisa membaca dan menulis. Tidak ada autentikasi, tidak ada enkripsi di sisi server.
+**Dua kredensial: kode ruang + kunci ruang.** Server menyimpan kunci sebagai hash SHA-256 (bukan plaintext) dan menolak push/pull yang kuncinya salah atau tidak ada (`403 bad key`). Ruang lama yang dibuat sebelum fitur kunci (tanpa `key_hash`) tetap bisa diakses tanpa kunci — buat ruang baru kalau mau proteksi penuh.
 
-Untuk pemakaian pribadi, cukup — asalkan kodenya panjang dan tidak bisa ditebak (`surya-dompet-7x2k-a9f3`, bukan `dompet`).
+Untuk pemakaian pribadi, cukup — asalkan kodenya panjang dan tidak bisa ditebak (`surya-dompet-7x2k-a9f3`, bukan `dompet`), dan kuncinya dibagikan hanya lewat jalur aman.
 
-**Kalau butuh lebih:** enkripsi body di klien sebelum dikirim (server jadi buta), atau ganti ke Supabase/Firebase yang punya autentikasi bawaan.
+Tidak ada enkripsi isi di sisi server: server bisa membaca body record. **Kalau butuh lebih:** enkripsi body di klien sebelum dikirim (server jadi buta), atau ganti ke Supabase/Firebase yang punya autentikasi bawaan.
 
 **Yang tidak boleh:** memakai skema ini untuk data keuangan yang serius tanpa minimal enkripsi sisi klien, atau dengan kode ruang yang gampang.
 
